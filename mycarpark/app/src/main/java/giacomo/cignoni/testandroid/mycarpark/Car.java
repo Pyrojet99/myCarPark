@@ -25,8 +25,8 @@ public class Car {
         return name;
     }
 
-    public void setCarId(long id) {
-        this.carId = id;
+    public void setCarId(long carId) {
+        this.carId = carId;
     }
 
     public void setName(String name) {

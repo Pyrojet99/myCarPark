@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 public class LocationManager {
     private MainActivity mainActivity;
     private FusedLocationProviderClient fusedLocationClient;
-    Geocoder geocoder;
+    private Geocoder geocoder;
     static final ExecutorService geocodeExecutor =
             Executors.newFixedThreadPool(2);
 
@@ -61,7 +61,7 @@ public class LocationManager {
         });
     }
 
-    public void getCurrentLocation(){
+    public void setCurrentLocation(){
         //TODO: check settings for location enabled https://developer.android.com/training/location/change-location-settings
 
         if (ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -103,8 +103,14 @@ public class LocationManager {
             }
             Log.d("mylog", "addNewLocation: address preso "+addr.getLocality());
             mainActivity.runOnUiThread(() -> {
-                 TextView textView = mainActivity.findViewById(R.id.textView1);
-                 textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
+                //TODO: sostituisci con insert in database
+                //TextView textView = mainActivity.findViewById(R.id.textView1);
+                 //textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
+
+                ParkAddress pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
+                        addr.getLocality(), addr.getThoroughfare());
+                Park p = new Park(pAddr, 0);
+                mainActivity.getParkViewModel().insert(p);
             });
 
         });

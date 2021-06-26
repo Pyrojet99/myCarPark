@@ -5,6 +5,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -27,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
     private BottomSheetBehavior bottomSheetBehavior;
     private LocationManager locationManager;
     private FloatingActionButton fabAddLocation;
+    private RecyclerView rvPark;
+    private ParkRVAdapter parkAdapter;
+    private ParkViewModel parkViewModel;
+
 
 
     @Override
@@ -34,31 +41,57 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fabAddLocation = findViewById(R.id.fab_add_location);
-
-        locationManager = new LocationManager(this);
-
-
-        fabAddLocation.setOnClickListener(v -> addNewLocation());
-
 
         //init bottom sheet
         initBottomSheet();
 
+        //init parks recycler
+        initParkRecyclerView();
+
+        parkViewModel = new ViewModelProvider(this).get(ParkViewModel.class);
+
+        parkViewModel.getAllParks().observe(this, parks -> {
+            // Update the cached copy of the words in the adapter.
+            parkAdapter.submitList(parks);
+        });
+
+        locationManager = new LocationManager(this);
+
         //init new location button
+        initFabAddLocation();
+
+
+
+    }
+
+    public ParkViewModel getParkViewModel(){
+        return parkViewModel;
     }
 
     private void addNewLocation() {
         Log.d("mylog", "addNewLocation: cliccato ");
-        locationManager.getCurrentLocation();
+        locationManager.setCurrentLocation();
+    }
 
+    public void initFabAddLocation(){
+        fabAddLocation = findViewById(R.id.fab_add_location);
+        fabAddLocation.setOnClickListener(v -> addNewLocation());
+    }
+
+    public void initParkRecyclerView(){
+        rvPark = findViewById(R.id.recyclerview_park);
+
+        parkAdapter = new ParkRVAdapter(new ParkRVAdapter.ParkDiff());
+        rvPark.setAdapter(parkAdapter);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        rvPark.setLayoutManager(llm);
     }
 
     private void initBottomSheet() {
         //non necessario! (per ora)
         
         // get the bottom sheet view
-        LinearLayout llBottomSheet = (LinearLayout) findViewById(R.id.bottom_sheet);
+        LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
 
         // init the bottom sheet behavior
         bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);

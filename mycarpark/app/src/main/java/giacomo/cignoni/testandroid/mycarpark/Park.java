@@ -1,6 +1,7 @@
 package giacomo.cignoni.testandroid.mycarpark;
 import android.location.Address;
 import androidx.room.ColumnInfo;
+import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -8,21 +9,21 @@ import androidx.room.PrimaryKey;
 public class Park {
     @PrimaryKey(autoGenerate = true)
     private long parkId;
-
-    private Address address;
+    @Embedded
+    private ParkAddress address;
 
     private long parkedCarId;
 
-    public Park(Address address, Long carId){
+    public Park(ParkAddress address, long parkedCarId){
         this.address = address;
-        this.parkedCarId = carId;
+        this.parkedCarId = parkedCarId;
     }
 
     public long getParkId() {
         return parkId;
     }
 
-    public Address getAddress() {
+    public ParkAddress getAddress() {
         return address;
     }
 
@@ -34,7 +35,7 @@ public class Park {
         this.parkId = id;
     }
 
-    public void setAddress(Address address) {
+    public void setAddress(ParkAddress address) {
         this.address = address;
     }
 

@@ -11,6 +11,9 @@ import java.util.List;
 
 @Dao
 public interface ParkDao {
+    @Query("SELECT * FROM park")
+    LiveData<List<Park>> getAll();
+
     @Query("SELECT * FROM park WHERE parkedCarId LIKE :carId")
     LiveData<List<Park>> getAllByCarId(Long carId);
 
