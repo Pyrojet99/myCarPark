@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,8 +14,11 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -48,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         //init parks recycler
         initParkRecyclerView();
 
+        //init top bar
+        initTopBar();
+
         parkViewModel = new ViewModelProvider(this).get(ParkViewModel.class);
 
         parkViewModel.getAllParks().observe(this, parks -> {
@@ -62,6 +69,37 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    }
+
+    public void initTopBar(){
+        LinearLayout hiddenTopBar = findViewById(R.id.layout_hidden_top_bar);
+        CardView cardTopBar = findViewById(R.id.card_top_bar);
+        ImageButton expandArrow = findViewById(R.id.button_expand_arrow);
+        expandArrow.setOnClickListener(v -> {
+            Log.d("mylog", "expandedArrow: cliccato ");
+
+            // If the CardView is already expanded, set its visibility
+            //  to gone and change the expand less icon to expand more.
+            if (hiddenTopBar.getVisibility() == View.VISIBLE) {
+
+                // The transition of the hiddenView is carried out
+                //  by the TransitionManager class.
+                // Here we use an object of the AutoTransition
+                // Class to create a default transition.
+                TransitionManager.beginDelayedTransition(cardTopBar);
+                hiddenTopBar.setVisibility(View.GONE);
+                //arrow.setImageResource(R.drawable.ic_baseline_expand_more_24);
+            }
+
+            // If the CardView is not expanded, set its visibility
+            // to visible and change the expand more icon to expand less.
+            else {
+
+                TransitionManager.beginDelayedTransition(cardTopBar);
+                hiddenTopBar.setVisibility(View.VISIBLE);
+                //arrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
+            }
+        });
     }
 
     public ParkViewModel getParkViewModel(){

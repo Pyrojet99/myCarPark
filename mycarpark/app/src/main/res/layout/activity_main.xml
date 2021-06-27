@@ -12,6 +12,9 @@
         android:layout_height="match_parent"/>
         -->
 
+    <!-- search bar layout -->
+    <include layout="@layout/top_bar_layout" />
+
     <!--bottom sheet container-->
     <include layout="@layout/bottom_sheet_layout" />
 
