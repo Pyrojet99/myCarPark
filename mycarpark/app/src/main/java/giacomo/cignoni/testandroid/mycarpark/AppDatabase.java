@@ -33,11 +33,11 @@ public abstract class AppDatabase extends RoomDatabase {
                 // If you want to start with more items, just add them.
                 CarDao cardao = INSTANCE.carDao();
 
-                Car c1 = new Car("TestCar1");
+                Car c1 = new Car("TestCar1", false);
                 cardao.insert(c1);
-                Car c2 = new Car("TestCar2");
+                Car c2 = new Car("TestCar2", false);
                 cardao.insert(c2);
-                Car c3 = new Car("TestCar3");
+                Car c3 = new Car("TestCar3", true);
                 cardao.insert(c3);
 
             });

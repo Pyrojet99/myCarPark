@@ -9,21 +9,31 @@ import java.util.List;
 
 public class CarViewModel extends AndroidViewModel {
 
-    private LiveData<List<Car>> liveCarListe;
+    private LiveData<List<Car>> liveCarList;
+    private LiveData<Car> currentCar;
     private CarDao carDao;
 
     public CarViewModel (Application application) {
         super(application);
         AppDatabase db = AppDatabase.getDatabase(application);
         carDao = db.carDao();
-        liveCarListe = carDao.getAll();
+        liveCarList = carDao.getAll();
+        currentCar = carDao.getCurrent();
     }
 
-    LiveData<List<Car>> getAllCars() { return liveCarListe; }
+    LiveData<List<Car>> getAllCars() { return liveCarList; }
+
+    LiveData<Car> getCurrentCar() { return currentCar; }
 
     public void insert(Car c) {
         AppDatabase.databaseWriteExecutor.execute(() ->
                 carDao.insert(c)
+        );
+    }
+
+    public void updateIsCurrent(long carId, boolean isCurrent) {
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                carDao.updateIsCurrent(carId, isCurrent)
         );
     }
 }

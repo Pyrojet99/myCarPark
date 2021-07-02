@@ -1,39 +1,37 @@
 package giacomo.cignoni.testandroid.mycarpark;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Location;
+import android.content.Context;
 import android.os.Bundle;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 public class MainActivity extends AppCompatActivity {
+    private CoordinatorLayout  coordinatorLayout;
     private BottomSheetBehavior bottomSheetBehavior;
     private LocationManager locationManager;
     private FloatingActionButton fabAddLocation;
+    private TextView textViewCurrCar;
+
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
     private ParkViewModel parkViewModel;
@@ -48,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //base coordinator layout
+        coordinatorLayout = findViewById(R.id.coordinator_layout_base);
 
         //init bottom sheet
         initBottomSheet();
@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
         carViewModel.getAllCars().observe(this, cars -> {
             // Update the cached copy of the cars in the adapter
             carAdapter.submitList(cars);
+        });
+        carViewModel.getCurrentCar().observe(this, car -> {
+            // Update top textview with car name
+            textViewCurrCar.setText(car.getName());
         });
 
         //init parks viewModel
@@ -80,10 +84,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void switchCar(long newSelectedCarId){
+        //set isCurrent as true for newly selected car
+        carViewModel.updateIsCurrent(newSelectedCarId, true);
+        //set previous curr car isCurrent as false
+        carViewModel.updateIsCurrent(carViewModel.getCurrentCar().getValue().getCarId(), false);
+    }
+
+    public void addNewCar(EditText editAddCar){
+        String carName = editAddCar.getText().toString();
+        Log.d("mylog", "new car: "+ carName);
+        if(!carName.trim().equals("")){
+            //new car set as current
+            Car c = new Car(carName, true);
+            carViewModel.insert(c);
+            //set previous curr car isCurrent as false
+            carViewModel.updateIsCurrent(carViewModel.getCurrentCar().getValue().getCarId(), false);
+        }
+        else{
+            //TODO: make toast or other
+            Log.d("mylog", "invalid car name");
+            Snackbar.make(coordinatorLayout, "use a non-void car name",
+                    BaseTransientBottomBar.LENGTH_SHORT).show();
+        }
+        //reset input text
+        editAddCar.setText("");
+        //close keyboard
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(editAddCar.getWindowToken(), 0);
+        //remove focus form edit text
+        editAddCar.clearFocus();
+    }
+
     public void initTopBar(){
         LinearLayout hiddenTopBar = findViewById(R.id.layout_hidden_top_bar);
         CardView cardTopBar = findViewById(R.id.card_top_bar);
         ImageButton expandArrow = findViewById(R.id.button_expand_arrow);
+        textViewCurrCar = findViewById(R.id.textview_curr_car);
+
+        //init add car
+        EditText editAddCar = findViewById(R.id.editText_add_car);
+        ImageButton buttonAddCar = findViewById(R.id.button_add_car);
+
+        //onclick listener for + button
+        buttonAddCar.setOnClickListener(v -> {
+            addNewCar(editAddCar);
+        });
+
+        //listener for done button on keyboard
+        editAddCar.setOnEditorActionListener( (v, actionId, event) -> {
+            addNewCar(editAddCar);
+            return true;
+        });
 
         //init cars recycler
         initCarRecyclerView();
@@ -141,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     public void initCarRecyclerView(){
         rvCar = findViewById(R.id.recyclerview_car);
 
-        carAdapter = new CarRVAdapter(new CarRVAdapter.CarDiff());
+        carAdapter = new CarRVAdapter(new CarRVAdapter.CarDiff(), this);
         rvCar.setAdapter(carAdapter);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rvCar.setLayoutManager(llm);

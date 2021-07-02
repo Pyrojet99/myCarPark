@@ -3,6 +3,7 @@ package giacomo.cignoni.testandroid.mycarpark;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,42 +11,53 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder>  {
+public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
 
-    public static class CarViewHolder extends RecyclerView.ViewHolder {
-        private TextView carName;
+    public static class CarViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private TextView textViewCarName;
+        private LinearLayout linearLayout;
+        //needed for calling switchCar method in main
+        private MainActivity mainActivity;
+        private long carId;
 
-        public CarViewHolder(View itemView) {
+        //constructor for inner class
+        public CarViewHolder(View itemView, MainActivity mainActivity) {
             super(itemView);
-            carName = itemView.findViewById(R.id.text_car_name);
+            textViewCarName = itemView.findViewById(R.id.text_car_name);
+            linearLayout = itemView.findViewById(R.id.layout_car_item);
+            this.mainActivity = mainActivity;
+            linearLayout.setOnClickListener(this);
         }
 
-        public void bind(String stringAddr1) {
-            carName.setText(stringAddr1);
+        public void bind(String carNameString, long carId) {
+            textViewCarName.setText(carNameString);
+            this.carId = carId; 
         }
 
-        static CarViewHolder create(ViewGroup parent) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.car_rv_item, parent, false);
-            return new CarViewHolder(view);
+        @Override
+        public void onClick(View v) {
+            mainActivity.switchCar(carId);
         }
     }
 
+    private MainActivity mainActivity;
 
-
-    public CarRVAdapter(@NonNull DiffUtil.ItemCallback<Car> diffCallback) {
+    public CarRVAdapter(@NonNull DiffUtil.ItemCallback<Car> diffCallback, MainActivity mainActivity) {
         super(diffCallback);
+        this.mainActivity = mainActivity;
     }
 
     @Override
     public CarViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return CarViewHolder.create(parent);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.car_rv_item, parent, false);
+        return new CarViewHolder(view, mainActivity);
     }
 
     @Override
     public void onBindViewHolder(CarViewHolder holder, int position) {
-        Car current = getItem(position);
-        holder.bind(current.getName());
+        Car carToBind = getItem(position);
+        holder.bind(carToBind.getName(), carToBind.getCarId());
     }
 
     static class CarDiff extends DiffUtil.ItemCallback<Car> {
