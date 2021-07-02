@@ -16,9 +16,7 @@
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="16dp"
-
-        app:cardBackgroundColor="@android:color/white">
+        android:layout_marginTop="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -55,27 +53,34 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!--Expanded part-->
+            <!--Hideable part-->
            <LinearLayout
                android:id="@+id/layout_hidden_top_bar"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:orientation="vertical"
-               android:visibility="gone">
+               android:visibility="visible">
 
                <androidx.constraintlayout.widget.ConstraintLayout
                    android:layout_width="match_parent"
                    android:layout_height="match_parent">
 
-                   <TextView
+
+                   <EditText
+                       android:id="@+id/editTextTextPersonName"
                        android:layout_width="wrap_content"
                        android:layout_height="wrap_content"
-                       android:text="aggiungi"
-                       android:padding="8dp"
-                       android:textColor="@color/text_gray"
+                       android:ems="10"
+                       android:inputType="textPersonName"
+                       android:text="Name"
                        app:layout_constraintStart_toStartOf="parent"
                        app:layout_constraintTop_toTopOf="parent" />
                </androidx.constraintlayout.widget.ConstraintLayout>
+
+               <androidx.recyclerview.widget.RecyclerView
+                   android:id="@+id/recyclerview_car"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content" />
            </LinearLayout>
 
 

@@ -21,9 +21,9 @@ public class ParkViewModel extends AndroidViewModel {
 
     LiveData<List<Park>> getAllParks() { return liveParkList; }
 
-    public void insert(Park park) {
+    public void insert(Park p) {
         AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.insert(park)
+                parkDao.insert(p)
         );
     }
 }

@@ -37,6 +37,8 @@ public abstract class AppDatabase extends RoomDatabase {
                 cardao.insert(c1);
                 Car c2 = new Car("TestCar2");
                 cardao.insert(c2);
+                Car c3 = new Car("TestCar3");
+                cardao.insert(c3);
 
             });
         }

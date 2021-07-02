@@ -37,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
     private ParkViewModel parkViewModel;
+    private RecyclerView rvCar;
+    private CarRVAdapter carAdapter;
+    private CarViewModel carViewModel;
 
 
 
@@ -55,10 +58,17 @@ public class MainActivity extends AppCompatActivity {
         //init top bar
         initTopBar();
 
-        parkViewModel = new ViewModelProvider(this).get(ParkViewModel.class);
+        //init cars viewModel
+        carViewModel = new ViewModelProvider(this).get(CarViewModel.class);
+        carViewModel.getAllCars().observe(this, cars -> {
+            // Update the cached copy of the cars in the adapter
+            carAdapter.submitList(cars);
+        });
 
+        //init parks viewModel
+        parkViewModel = new ViewModelProvider(this).get(ParkViewModel.class);
         parkViewModel.getAllParks().observe(this, parks -> {
-            // Update the cached copy of the words in the adapter.
+            // Update the cached copy of the parks in the adapter
             parkAdapter.submitList(parks);
         });
 
@@ -68,13 +78,16 @@ public class MainActivity extends AppCompatActivity {
         initFabAddLocation();
 
 
-
     }
 
     public void initTopBar(){
         LinearLayout hiddenTopBar = findViewById(R.id.layout_hidden_top_bar);
         CardView cardTopBar = findViewById(R.id.card_top_bar);
         ImageButton expandArrow = findViewById(R.id.button_expand_arrow);
+
+        //init cars recycler
+        initCarRecyclerView();
+
         expandArrow.setOnClickListener(v -> {
             Log.d("mylog", "expandedArrow: cliccato ");
 
@@ -86,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 //  by the TransitionManager class.
                 // Here we use an object of the AutoTransition
                 // Class to create a default transition.
-                TransitionManager.beginDelayedTransition(cardTopBar);
+                TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
                 hiddenTopBar.setVisibility(View.GONE);
                 //arrow.setImageResource(R.drawable.ic_baseline_expand_more_24);
             }
@@ -95,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
             // to visible and change the expand more icon to expand less.
             else {
 
-                TransitionManager.beginDelayedTransition(cardTopBar);
+                TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
                 hiddenTopBar.setVisibility(View.VISIBLE);
                 //arrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
             }
@@ -123,6 +136,15 @@ public class MainActivity extends AppCompatActivity {
         rvPark.setAdapter(parkAdapter);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rvPark.setLayoutManager(llm);
+    }
+
+    public void initCarRecyclerView(){
+        rvCar = findViewById(R.id.recyclerview_car);
+
+        carAdapter = new CarRVAdapter(new CarRVAdapter.CarDiff());
+        rvCar.setAdapter(carAdapter);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        rvCar.setLayoutManager(llm);
     }
 
     private void initBottomSheet() {
