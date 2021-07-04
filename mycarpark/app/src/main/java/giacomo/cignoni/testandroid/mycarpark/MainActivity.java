@@ -34,10 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
-    private ParkViewModel parkViewModel;
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
-    private CarViewModel carViewModel;
+    private DBViewModel DBViewModel;
 
 
 
@@ -59,19 +58,18 @@ public class MainActivity extends AppCompatActivity {
         initTopBar();
 
         //init cars viewModel
-        carViewModel = new ViewModelProvider(this).get(CarViewModel.class);
-        carViewModel.getAllCars().observe(this, cars -> {
+        DBViewModel = new ViewModelProvider(this).get(DBViewModel.class);
+        DBViewModel.getAllCars().observe(this, cars -> {
             // Update the cached copy of the cars in the adapter
             carAdapter.submitList(cars);
         });
-        carViewModel.getCurrentCar().observe(this, car -> {
+        DBViewModel.getCurrentCar().observe(this, car -> {
             // Update top textview with car name
             textViewCurrCar.setText(car.getName());
         });
 
         //init parks viewModel
-        parkViewModel = new ViewModelProvider(this).get(ParkViewModel.class);
-        parkViewModel.getAllParks().observe(this, parks -> {
+        DBViewModel.getCurrentCarParks().observe(this, parks -> {
             // Update the cached copy of the parks in the adapter
             parkAdapter.submitList(parks);
         });
@@ -86,9 +84,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void switchCar(long newSelectedCarId){
         //set isCurrent as true for newly selected car
-        carViewModel.updateIsCurrent(newSelectedCarId, true);
+        DBViewModel.updateIsCurrentCar(newSelectedCarId, true);
         //set previous curr car isCurrent as false
-        carViewModel.updateIsCurrent(carViewModel.getCurrentCar().getValue().getCarId(), false);
+        DBViewModel.updateIsCurrentCar(DBViewModel.getCurrentCar().getValue().getCarId(), false);
     }
 
     public void addNewCar(EditText editAddCar){
@@ -97,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
         if(!carName.trim().equals("")){
             //new car set as current
             Car c = new Car(carName, true);
-            carViewModel.insert(c);
+            DBViewModel.insertCar(c);
             //set previous curr car isCurrent as false
-            carViewModel.updateIsCurrent(carViewModel.getCurrentCar().getValue().getCarId(), false);
+            DBViewModel.updateIsCurrentCar(DBViewModel.getCurrentCar().getValue().getCarId(), false);
         }
         else{
             //TODO: make toast or other
@@ -167,8 +165,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public ParkViewModel getParkViewModel(){
-        return parkViewModel;
+    public DBViewModel getDBViewModel(){
+        return DBViewModel;
     }
 
     private void addNewLocation() {

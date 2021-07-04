@@ -5,9 +5,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -103,14 +101,18 @@ public class LocationManager {
             }
             Log.d("mylog", "addNewLocation: address preso "+addr.getLocality());
             mainActivity.runOnUiThread(() -> {
-                //TODO: sostituisci con insert in database
                 //TextView textView = mainActivity.findViewById(R.id.textView1);
                  //textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
 
+                //create new ParkAddress
                 ParkAddress pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
                         addr.getLocality(), addr.getThoroughfare());
-                Park p = new Park(pAddr, 0);
-                mainActivity.getParkViewModel().insert(p);
+                //get current car id from Car viewModel
+                Long carId = mainActivity.getDBViewModel().getCurrentCar().getValue().getCarId();
+                //create new Park
+                Park p = new Park(pAddr, carId);
+                //insert in database
+                mainActivity.getDBViewModel().insertPark(p);
             });
 
         });
