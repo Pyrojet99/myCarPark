@@ -18,7 +18,7 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
         private LinearLayout linearLayout;
         //needed for calling switchCar method in main
         private MainActivity mainActivity;
-        private long carId;
+        private Car car;
 
         //constructor for inner class
         public CarViewHolder(View itemView, MainActivity mainActivity) {
@@ -29,14 +29,14 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
             linearLayout.setOnClickListener(this);
         }
 
-        public void bind(String carNameString, long carId) {
+        public void bind(String carNameString, Car c) {
             textViewCarName.setText(carNameString);
-            this.carId = carId; 
+            this.car = c;
         }
 
         @Override
         public void onClick(View v) {
-            mainActivity.switchCar(carId);
+            mainActivity.switchCar(this.car);
         }
     }
 
@@ -57,7 +57,7 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
     @Override
     public void onBindViewHolder(CarViewHolder holder, int position) {
         Car carToBind = getItem(position);
-        holder.bind(carToBind.getName(), carToBind.getCarId());
+        holder.bind(carToBind.getName(), carToBind);
     }
 
     static class CarDiff extends DiffUtil.ItemCallback<Car> {

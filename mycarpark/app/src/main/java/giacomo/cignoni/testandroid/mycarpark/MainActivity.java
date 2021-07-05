@@ -25,6 +25,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class MainActivity extends AppCompatActivity {
     private CoordinatorLayout  coordinatorLayout;
     private BottomSheetBehavior bottomSheetBehavior;
@@ -37,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
     private DBViewModel DBViewModel;
+
+    private long currentCarId;
 
 
 
@@ -59,20 +63,66 @@ public class MainActivity extends AppCompatActivity {
 
         //init cars viewModel
         DBViewModel = new ViewModelProvider(this).get(DBViewModel.class);
+
+        DBViewModel.getAllCars().observe(this, cars -> {
+            // Update the cached copy of the cars in the adapter
+            carAdapter.submitList(cars);
+        });
+
+        MainActivity ma = this;
+        //starting currCar observer
+        DBViewModel.getCurrentCar().observe(ma, car -> {
+            if(car != null) {
+                //initializes curr car at app start
+                currentCarId = car.getCarId();
+                // Update top textview with car name
+                textViewCurrCar.setText(car.getName());
+                //initialize parks for current car
+                DBViewModel.updateParksByCurrentCarId(car.getCarId());
+                //init parks observer
+                DBViewModel.getCurrentCarParks().observe(ma, parks -> {
+                    // Update the cached copy of the parks in the adapter
+                    Log.d("mytag", "parks observer initial: called");
+                    parkAdapter.submitList(parks);
+                });
+
+                DBViewModel.getCurrentCar().removeObservers(ma);
+            }
+        });
+
+
+
+        /*
         DBViewModel.getAllCars().observe(this, cars -> {
             // Update the cached copy of the cars in the adapter
             carAdapter.submitList(cars);
         });
         DBViewModel.getCurrentCar().observe(this, car -> {
-            // Update top textview with car name
-            textViewCurrCar.setText(car.getName());
-        });
+            if(car != null) {
 
-        //init parks viewModel
-        DBViewModel.getCurrentCarParks().observe(this, parks -> {
-            // Update the cached copy of the parks in the adapter
-            parkAdapter.submitList(parks);
-        });
+                Log.d("mytag", "observe currentCar: id in main: "+currentCarId+
+                        ", id in live: "+car.getCarId());
+                currentCarId = car.getCarId();
+
+                // Update top textview with car name
+                textViewCurrCar.setText(car.getName());
+
+                //remove previous observers
+                //DBViewModel.getCurrentCarParks().removeObservers(this);
+
+                if(DBViewModel.getCurrentCarParks() == null) {
+                    //update parks for current car
+                    DBViewModel.updateParksByCurrentCarId(car.getCarId());
+                    //init parks observer
+                    DBViewModel.getCurrentCarParks().observe(this, parks -> {
+                        // Update the cached copy of the parks in the adapter
+                        parkAdapter.submitList(parks);
+
+                    });
+                }
+
+            }
+        });*/
 
         locationManager = new LocationManager(this);
 
@@ -82,26 +132,44 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void switchCar(long newSelectedCarId){
+    public void switchCar(Car newSelectedCar){
+        // Update top textview with car name
+        textViewCurrCar.setText(newSelectedCar.getName());
+
+        //remove observers from oldparks liveData
+        DBViewModel.getCurrentCarParks().removeObservers(this);
+        //updates parks liveData with parks for new current car
+        DBViewModel.updateParksByCurrentCarId(newSelectedCar.getCarId());
+        //set observer for new parks livedata
+        DBViewModel.getCurrentCarParks().observe(this, parks -> {
+            // Update the cached copy of the parks in the adapter
+            parkAdapter.submitList(parks);
+        });
+
         //set isCurrent as true for newly selected car
-        DBViewModel.updateIsCurrentCar(newSelectedCarId, true);
+        DBViewModel.updateIsCurrentCar(newSelectedCar.getCarId(), true);
         //set previous curr car isCurrent as false
-        DBViewModel.updateIsCurrentCar(DBViewModel.getCurrentCar().getValue().getCarId(), false);
+        DBViewModel.updateIsCurrentCar(this.currentCarId, false);
+
+        //sets currentCarId
+        currentCarId = newSelectedCar.getCarId();
+
     }
 
     public void addNewCar(EditText editAddCar){
         String carName = editAddCar.getText().toString();
-        Log.d("mylog", "new car: "+ carName);
+        Log.d("mytag", "new car: "+ carName);
         if(!carName.trim().equals("")){
             //new car set as current
-            Car c = new Car(carName, true);
+            Car c = new Car(carName, false);
             DBViewModel.insertCar(c);
-            //set previous curr car isCurrent as false
-            DBViewModel.updateIsCurrentCar(DBViewModel.getCurrentCar().getValue().getCarId(), false);
+
+            //CONSIDER: switch to new car? need observer for currCar to get carId generated by DB
+            //switchCar(c);
         }
         else{
             //TODO: make toast or other
-            Log.d("mylog", "invalid car name");
+            Log.d("mytag", "invalid car name");
             Snackbar.make(coordinatorLayout, "use a non-void car name",
                     BaseTransientBottomBar.LENGTH_SHORT).show();
         }
@@ -139,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
         initCarRecyclerView();
 
         expandArrow.setOnClickListener(v -> {
-            Log.d("mylog", "expandedArrow: cliccato ");
+            Log.d("mytag", "expandedArrow: cliccato ");
+            //TODO: close keyboard if open
 
             // If the CardView is already expanded, set its visibility
             //  to gone and change the expand less icon to expand more.
@@ -169,8 +238,12 @@ public class MainActivity extends AppCompatActivity {
         return DBViewModel;
     }
 
+    public long getCurrentCarId() {
+        return currentCarId;
+    }
+
     private void addNewLocation() {
-        Log.d("mylog", "addNewLocation: cliccato ");
+        Log.d("mytag", "addNewLocation: cliccato ");
         locationManager.setCurrentLocation();
     }
 

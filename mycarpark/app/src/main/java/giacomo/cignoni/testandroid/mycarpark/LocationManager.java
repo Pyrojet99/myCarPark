@@ -45,7 +45,7 @@ public class LocationManager {
             if (isGranted) {
                 // Permission is granted. Continue the action or workflow in your
                 // app.
-                Log.d("mylog", "addNewLocation: no permission granted after dialog");
+                Log.d("mytag", "addNewLocation: no permission granted after dialog");
 
             } else {
                 // Explain to the user that the feature is unavailable because the
@@ -63,7 +63,7 @@ public class LocationManager {
         //TODO: check settings for location enabled https://developer.android.com/training/location/change-location-settings
 
         if (ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("mylog", "addNewLocation: no permission location");
+            Log.d("mytag", "addNewLocation: no permission location");
             requestPermissionLauncher.launch(
                     Manifest.permission.ACCESS_FINE_LOCATION);
             return;
@@ -74,7 +74,7 @@ public class LocationManager {
             Location location = task.getResult();
 
             Toast.makeText(mainActivity.getApplicationContext(), "location got", Toast.LENGTH_SHORT).show();
-            Log.d("mylog", "addNewLocation: posizione presa "+location.getLatitude()+" "+
+            Log.d("mytag", "addNewLocation: posizione presa "+location.getLatitude()+" "+
                     location.getLongitude());
             reverseGeocode(location);
 
@@ -99,7 +99,7 @@ public class LocationManager {
             else{
                 addr = listAddresses.get(0);
             }
-            Log.d("mylog", "addNewLocation: address preso "+addr.getLocality());
+            Log.d("mytag", "addNewLocation: address preso "+addr.getLocality());
             mainActivity.runOnUiThread(() -> {
                 //TextView textView = mainActivity.findViewById(R.id.textView1);
                  //textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
@@ -107,10 +107,8 @@ public class LocationManager {
                 //create new ParkAddress
                 ParkAddress pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
                         addr.getLocality(), addr.getThoroughfare());
-                //get current car id from Car viewModel
-                Long carId = mainActivity.getDBViewModel().getCurrentCar().getValue().getCarId();
-                //create new Park
-                Park p = new Park(pAddr, carId);
+                //create new park
+                Park p = new Park(pAddr, mainActivity.getCurrentCarId());
                 //insert in database
                 mainActivity.getDBViewModel().insertPark(p);
             });

@@ -47,8 +47,8 @@ public class ParkRVAdapter extends ListAdapter<Park, ParkRVAdapter.ParkViewHolde
 
         @Override
         public void onBindViewHolder(ParkViewHolder holder, int position) {
-        Park current = getItem(position);
-        holder.bind(current.getAddress().getThoroughfare(), current.getAddress().getLocality());
+        Park parkToBind = getItem(position);
+        holder.bind(parkToBind.getAddress().getThoroughfare(), parkToBind.getAddress().getLocality()+" "+parkToBind.getParkedCarId());
     }
 
         static class ParkDiff extends DiffUtil.ItemCallback<Park> {
