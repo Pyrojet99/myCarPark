@@ -5,12 +5,11 @@
     android:layout_height="match_parent"
     android:id="@+id/coordinator_layout_base">
 
-    <!--<fragment
+    <fragment
         android:id="@+id/map_main"
         class="com.google.android.gms.maps.MapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-        -->
 
     <!-- search bar layout -->
     <include layout="@layout/top_bar_layout" />

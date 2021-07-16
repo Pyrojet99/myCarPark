@@ -20,6 +20,10 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -129,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         //init new location button
         initFabAddLocation();
 
-
+        initMap();
     }
 
     public void switchCar(Car newSelectedCar){
@@ -231,6 +235,28 @@ public class MainActivity extends AppCompatActivity {
                 hiddenTopBar.setVisibility(View.VISIBLE);
                 //arrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
             }
+        });
+    }
+
+    public void initMap(){
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_main);
+        mapFragment.getMapAsync(googleMap -> {
+            // set map type
+            googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            //Disable zoom controls
+            googleMap.getUiSettings().setZoomControlsEnabled(false);
+
+            // Enable compass icon - already enabled
+            //googleMap.getUiSettings().setCompassEnabled(true);
+            // Enable Rotate gesture - already enabled
+            //googleMap.getUiSettings().setRotateGesturesEnabled(true);
+            // Enable zoom gestures - already enebled
+            //googleMap.getUiSettings().setZoomGesturesEnabled(true);
+            // Enable scroll gestures - already enebled
+            //googleMap.getUiSettings().setScrollGesturesEnabled(true);
+
+            googleMap.getUiSettings().setMapToolbarEnabled(true);
+
         });
     }
 
