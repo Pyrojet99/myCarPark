@@ -6,13 +6,14 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import java.util.List;
-import java.util.Objects;
 
 public class DBViewModel extends AndroidViewModel {
 
     private LiveData<List<Park>> liveParkList;
     private LiveData<List<Car>> liveCarList;
-    private LiveData<Car> liveCurrentCar;
+    private LiveData<Car> liveInitialCurrentCar;
+
+    private Car CurrentCar;
 
     private CarDao carDao;
     private ParkDao parkDao;
@@ -26,9 +27,9 @@ public class DBViewModel extends AndroidViewModel {
         carDao = db.carDao();
         //initialize liveData data structures
         liveCarList = carDao.getAll();
-        liveCurrentCar = carDao.getCurrent();
+        liveInitialCurrentCar = carDao.getCurrent();
 
-        Car currCar = liveCurrentCar.getValue();
+        Car currCar = liveInitialCurrentCar.getValue();
         if(currCar != null) {
             liveParkList = parkDao.getAllByCarId(currCar.getCarId());
         }
@@ -36,7 +37,7 @@ public class DBViewModel extends AndroidViewModel {
 
     LiveData<List<Car>> getAllCars() { return liveCarList; }
 
-    LiveData<Car> getCurrentCar() { return liveCurrentCar; }
+    LiveData<Car> getLiveInitialCurrentCar() { return liveInitialCurrentCar; }
 
     public void insertCar(Car c) {
         AppDatabase.databaseWriteExecutor.execute(() ->
@@ -51,8 +52,13 @@ public class DBViewModel extends AndroidViewModel {
         );
     }
 
-    LiveData<List<Park>> getCurrentCarParks() { return liveParkList; }
+    public LiveData<List<Park>> getCurrentCarParks() {
+        return liveParkList;
+    }
 
+    public void resetInitialCurrentCar(){
+        liveInitialCurrentCar = null;
+    }
 
     public void updateParksByCurrentCarId(long newCarId){
         liveParkList = parkDao.getAllByCarId(newCarId);
@@ -62,6 +68,14 @@ public class DBViewModel extends AndroidViewModel {
         AppDatabase.databaseWriteExecutor.execute(() ->
                 parkDao.insert(p)
         );
+    }
+
+    public Car getCurrentCar() {
+        return CurrentCar;
+    }
+
+    public void setCurrentCar(Car currentCar) {
+        CurrentCar = currentCar;
     }
 
 }

@@ -99,7 +99,7 @@ public class LocationManager {
             else{
                 addr = listAddresses.get(0);
             }
-            Log.d("mytag", "addNewLocation: address preso "+addr.getLocality());
+            Log.d("mytag", "addNewLocation: address preso "+ addr.getLocality());
             mainActivity.runOnUiThread(() -> {
                 //TextView textView = mainActivity.findViewById(R.id.textView1);
                  //textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
