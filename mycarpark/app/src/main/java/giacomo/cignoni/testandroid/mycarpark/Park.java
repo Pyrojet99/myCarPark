@@ -1,6 +1,5 @@
 package giacomo.cignoni.testandroid.mycarpark;
-import android.location.Address;
-import androidx.room.ColumnInfo;
+
 import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -13,10 +12,13 @@ public class Park {
     private ParkAddress address;
 
     private long parkedCarId;
+    private long startTime;
+    private long endTime;
 
-    public Park(ParkAddress address, long parkedCarId){
+    public Park(ParkAddress address, long parkedCarId, long startTime){
         this.address = address;
         this.parkedCarId = parkedCarId;
+        this.startTime = startTime;
     }
 
     public long getParkId() {
@@ -41,5 +43,21 @@ public class Park {
 
     public void setParkedCarId(long carId) {
         this.parkedCarId = carId;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 }

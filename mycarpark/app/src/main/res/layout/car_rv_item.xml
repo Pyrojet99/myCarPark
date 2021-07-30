@@ -3,7 +3,8 @@
     android:id="@+id/layout_car_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/text_car_name"
@@ -12,4 +13,10 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:text="testtttt" />
+
+    <ViewStub android:id="@+id/stub_car_item_ext"
+        android:inflatedId="@+id/car_item_ext"
+        android:layout="@layout/curr_park_rv_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

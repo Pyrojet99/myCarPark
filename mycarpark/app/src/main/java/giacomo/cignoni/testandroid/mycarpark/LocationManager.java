@@ -107,10 +107,7 @@ public class LocationManager {
                 //create new ParkAddress
                 ParkAddress pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
                         addr.getLocality(), addr.getThoroughfare());
-                //create new park
-                Park p = new Park(pAddr, mainActivity.getCurrentCarId());
-                //insert in database
-                mainActivity.getDBViewModel().insertPark(p);
+                mainActivity.insertPark(pAddr);
             });
 
         });

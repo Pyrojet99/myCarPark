@@ -27,6 +27,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
     private CoordinatorLayout  coordinatorLayout;
     private BottomSheetBehavior bottomSheetBehavior;
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
     private DBViewModel DBViewModel;
+
 
 
     @Override
@@ -249,9 +253,18 @@ public class MainActivity extends AppCompatActivity {
         return DBViewModel.getCurrentCar().getCarId();
     }
 
-    private void addNewLocation() {
+    public void addNewLocation() {
         Log.d("mytag", "addNewLocation: cliccato ");
         locationManager.setCurrentLocation();
+    }
+
+    public void insertPark(ParkAddress addr) {
+        //get current time in millis
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        //create new park
+        Park p = new Park(addr, this.getCurrentCarId(), startTime);
+        //insert in database
+        DBViewModel.insertPark(p);
     }
 
     public void initFabAddLocation(){
@@ -262,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
     public void initParkRecyclerView(){
         rvPark = findViewById(R.id.recyclerview_park);
 
-        parkAdapter = new ParkRVAdapter(new ParkRVAdapter.ParkDiff());
+        parkAdapter = new ParkRVAdapter(new ParkRVAdapter.ParkDiff(), this);
         rvPark.setAdapter(parkAdapter);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rvPark.setLayoutManager(llm);
@@ -302,4 +315,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void dismissPark(){
+
+    }
+
+    public static String getDate(long milliSeconds, String dateFormat)
+    {
+        // Create a DateFormatter object for displaying date in specified format.
+        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+
+        // Create a calendar object that will convert the date and time value in milliseconds to date.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(milliSeconds);
+        return formatter.format(calendar.getTime());
+    }
+
 }
