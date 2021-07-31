@@ -8,13 +8,14 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
-        public static class ParkViewHolder extends RecyclerView.ViewHolder {
+        public static class ParkViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             //needed for calling methods from main
             protected MainActivity mainActivity;
             Park park;
@@ -22,6 +23,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
             protected TextView textParkAddrLine1;
             protected TextView textParkAddrLine2;
             protected TextView textTime;
+            private CardView cardView;
 
 
             public ParkViewHolder(View itemView, MainActivity mainActivity) {
@@ -30,6 +32,9 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 textParkAddrLine1 = itemView.findViewById(R.id.textview_addr_line1);
                 textParkAddrLine2 = itemView.findViewById(R.id.textview_addr_line2);
                 textTime = itemView.findViewById(R.id.textview_time);
+                cardView = itemView.findViewById(R.id.cardview_park);
+
+                cardView.setOnClickListener(this);
             }
 
             public void bind(Park p) {
@@ -47,6 +52,17 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                         .inflate(R.layout.park_rv_item, parent, false);
                 return new ParkViewHolder(view, ma);
             }
+
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.cardview_park:
+                        mainActivity.addParkMarker(this.park);
+                        Log.d("mytag", "onClick cardPark marker ");
+                        break;
+                }
+
+            }
         }
 
     public static class CurrentParkViewHolder extends ParkViewHolder implements View.OnClickListener {
@@ -56,9 +72,10 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         public CurrentParkViewHolder(View itemView, MainActivity mainActivity) {
             super(itemView, mainActivity);
             buttonDismiss = itemView.findViewById(R.id.button_dismiss_park);
-
+            buttonDismiss.setOnClickListener(this);
         }
 
+        @Override
         public void bind(Park p) {
            super.bind(p);
            if( super.park.getEndTime() == 0) {
@@ -67,8 +84,6 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         }
 
         static CurrentParkViewHolder create(ViewGroup parent, MainActivity ma) {
-            Log.d("mytag", "create CurrentParkViewholder ");
-
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.curr_park_rv_item, parent, false);
             return new CurrentParkViewHolder(view, ma);
@@ -76,8 +91,11 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
         @Override
         public void onClick(View v) {
-            switch (v.getId()){
-                case R.id.button_dismiss_park: super.mainActivity.dismissPark();
+            switch (v.getId()) {
+                case R.id.button_dismiss_park:
+                    super.mainActivity.dismissPark(super.park);
+                    break;
+
             }
         }
     }
@@ -94,7 +112,6 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
     public int getItemViewType(int position) {
         Park parkToBind = getItem(position);
         //current park if endTime == 0 (not initialized)
-        Log.d("mytag", "parktobind endtime: "+parkToBind.getEndTime());
 
         if (parkToBind.getEndTime() == 0) return 0;
         else return  1;

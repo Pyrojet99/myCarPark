@@ -10,7 +10,7 @@
     >
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cv"
+        android:id="@+id/cardview_park"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardUseCompatPadding="true"

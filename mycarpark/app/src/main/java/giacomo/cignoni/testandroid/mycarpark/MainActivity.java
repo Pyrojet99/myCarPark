@@ -22,6 +22,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -42,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
     private DBViewModel DBViewModel;
+
+    GoogleMap map;
 
 
 
@@ -234,12 +238,14 @@ public class MainActivity extends AppCompatActivity {
             //googleMap.getUiSettings().setCompassEnabled(true);
             // Enable Rotate gesture - already enabled
             //googleMap.getUiSettings().setRotateGesturesEnabled(true);
-            // Enable zoom gestures - already enebled
+            // Enable zoom gestures - already enabled
             //googleMap.getUiSettings().setZoomGesturesEnabled(true);
-            // Enable scroll gestures - already enebled
+            // Enable scroll gestures - already enabled
             //googleMap.getUiSettings().setScrollGesturesEnabled(true);
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);
+
+            this.map = googleMap;
 
         });
     }
@@ -260,9 +266,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void insertPark(ParkAddress addr) {
         //get current time in millis
-        long startTime = Calendar.getInstance().getTimeInMillis();
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+
         //create new park
-        Park p = new Park(addr, this.getCurrentCarId(), startTime);
+        Park p = new Park(addr, this.getCurrentCarId(), currentTime);
         //insert in database
         DBViewModel.insertPark(p);
     }
@@ -316,8 +323,20 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void dismissPark(){
+    public void addCurrentParkMarker(){
 
+    }
+
+    public void addParkMarker(Park park){
+        LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
+        this.map.addMarker(new MarkerOptions()
+        .position(position));
+    }
+
+    public void dismissPark(Park park){
+        //get current time in millis
+        long endTime = Calendar.getInstance().getTimeInMillis();
+        DBViewModel.dismissPark(park, endTime);
     }
 
     public static String getDate(long milliSeconds, String dateFormat)

@@ -65,9 +65,12 @@ public class DBViewModel extends AndroidViewModel {
     }
 
     public void insertPark(Park p) {
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.insert(p)
-        );
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            //sets current time as endTime for previous current parks BEFORE a new park is inserted
+            parkDao.dismissAllCurrentParks(p.getParkedCarId(), p.getStartTime());
+            //after that, inserts new park into database. The 2 DB operations NEED to be sequential
+            parkDao.insert(p);
+        });
     }
 
     public Car getCurrentCar() {
@@ -76,6 +79,18 @@ public class DBViewModel extends AndroidViewModel {
 
     public void setCurrentCar(Car currentCar) {
         CurrentCar = currentCar;
+    }
+
+    public void dismissPark(Park p, Long endTime){
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                parkDao.dismissPark(p.getParkId(), endTime)
+        );
+    }
+
+    public void dismissAllCurrentParks(Car currentCar, long endTime){
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                parkDao.dismissAllCurrentParks(currentCar.getCarId(), endTime)
+        );
     }
 
 }

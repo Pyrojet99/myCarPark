@@ -14,7 +14,7 @@ public interface ParkDao {
     @Query("SELECT * FROM park")
     LiveData<List<Park>> getAll();
 
-    @Query("SELECT * FROM park WHERE parkedCarId LIKE :carId")
+    @Query("SELECT * FROM park WHERE parkedCarId LIKE :carId ORDER BY startTime DESC")
     LiveData<List<Park>> getAllByCarId(Long carId);
 
     @Query("SELECT * FROM park WHERE parkId LIKE :queryId LIMIT 1")
@@ -22,6 +22,12 @@ public interface ParkDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Park p);
+
+    @Query("UPDATE Park SET endTime = :endTime WHERE parkId LIKE :parkId")
+    void dismissPark(Long parkId, long endTime);
+
+    @Query("UPDATE Park SET endTime = :endTime WHERE parkedCarId LIKE :carId AND endTime LIKE 0")
+    void dismissAllCurrentParks(Long carId, long endTime);
 
     @Delete
     void delete(Park p);
