@@ -5,7 +5,12 @@ import android.app.Application;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DBViewModel extends AndroidViewModel {
 
@@ -13,7 +18,12 @@ public class DBViewModel extends AndroidViewModel {
     private LiveData<List<Car>> liveCarList;
     private LiveData<Car> liveInitialCurrentCar;
 
-    private Car CurrentCar;
+
+    private Car currentCar;
+    //map with <parkId, MarkerOptions> couples
+    private Map<Long, MarkerOptions> markerOptionsMap;
+    //map with <parkId, Boolean> couples, Bool==true if corresponding marker is of current park
+    private Map <Long, Boolean> markerIsCurrParkMap;
 
     private CarDao carDao;
     private ParkDao parkDao;
@@ -33,6 +43,9 @@ public class DBViewModel extends AndroidViewModel {
         if(currCar != null) {
             liveParkList = parkDao.getAllByCarId(currCar.getCarId());
         }
+
+        markerOptionsMap = new HashMap<>();
+        markerIsCurrParkMap = new HashMap<>();
     }
 
     LiveData<List<Car>> getAllCars() { return liveCarList; }
@@ -74,11 +87,11 @@ public class DBViewModel extends AndroidViewModel {
     }
 
     public Car getCurrentCar() {
-        return CurrentCar;
+        return currentCar;
     }
 
     public void setCurrentCar(Car currentCar) {
-        CurrentCar = currentCar;
+        this.currentCar = currentCar;
     }
 
     public void dismissPark(Park p, Long endTime){
@@ -93,4 +106,41 @@ public class DBViewModel extends AndroidViewModel {
         );
     }
 
-}
+    /*
+    Add marker to markersList
+     */
+    public void putMarkerOptions(long parkId, MarkerOptions m){
+        markerOptionsMap.put(parkId, m);
+    }
+
+    public MarkerOptions getMarkerOptions(long parkId) {
+        return markerOptionsMap.get(parkId);
+    }
+
+    public Map<Long, MarkerOptions> getMarkerOptionsMap(){
+        return markerOptionsMap;
+    }
+
+    public void removeMarkerOptions(long parkId){
+        markerOptionsMap.remove(parkId);
+    }
+
+    public  void resetMarkerOptionsMap(){
+        markerOptionsMap.clear();
+    }
+
+    public void putMarkerIsCurr(long parkId, Boolean b){
+        markerIsCurrParkMap.put(parkId, b);
+    }
+
+    public Boolean getMarkerIsCurr(long parkId) {
+        return markerIsCurrParkMap.get(parkId);
+    }
+
+    public void removeMarkerIsCurr(long parkId){
+        markerIsCurrParkMap.remove(parkId);
+    }
+
+    public  void resetMarkerIsCurrMap(){
+        markerIsCurrParkMap.clear();
+    }}

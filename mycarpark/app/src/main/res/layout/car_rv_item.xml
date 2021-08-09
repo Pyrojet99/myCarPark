@@ -12,11 +12,5 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
-        android:text="testtttt" />
-
-    <ViewStub android:id="@+id/stub_car_item_ext"
-        android:inflatedId="@+id/car_item_ext"
-        android:layout="@layout/curr_park_rv_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="-" />
 </LinearLayout>

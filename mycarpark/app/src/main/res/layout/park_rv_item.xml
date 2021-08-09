@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/lin_layout_park_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -25,11 +26,11 @@
                 android:id="@+id/textview_addr_line1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginRight="8dp"
+                android:padding="8dp"
 
+                app:layout_constraintEnd_toStartOf="@+id/imageButton"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -54,6 +55,16 @@
                 android:layout_marginRight="8dp"
                 app:layout_constraintStart_toEndOf="@+id/textview_addr_line2"
                 app:layout_constraintTop_toBottomOf="@+id/textview_addr_line1" />
+
+            <ImageButton
+                android:id="@+id/button_more_park"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:paddingTop="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_baseline_more_vert_18" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

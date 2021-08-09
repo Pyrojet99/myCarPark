@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
@@ -22,7 +25,10 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -31,6 +37,8 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private CoordinatorLayout  coordinatorLayout;
@@ -45,7 +53,14 @@ public class MainActivity extends AppCompatActivity {
     private CarRVAdapter carAdapter;
     private DBViewModel DBViewModel;
 
-    GoogleMap map;
+    private GoogleMap map;
+    //map with <parkId, MarkerOptions> couples, used for deleting or modifying markers.
+    //Item is present in markersMap => item is present in markerOptionsMap in viewModel,
+    //but the opposite is not always true.
+    private Map<Long, Marker> markersMap;
+
+    private Bitmap bitmapCurrentMarker;
+    private Bitmap bitmapOldMarker;
 
 
 
@@ -54,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //generates bitmaps for map markers
+        bitmapCurrentMarker = generateBitmapFromVector(R.drawable.ic_car_current_24_vect);
+        bitmapOldMarker = generateBitmapFromVector(R.drawable.ic_car_old_24_vect);
 
         //base coordinator layout
         coordinatorLayout = findViewById(R.id.coordinator_layout_base);
@@ -146,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
 
         //sets currentCar in viewModel as the selected car
         DBViewModel.setCurrentCar(newSelectedCar);
+
+        //resets map markers
+        this.removeAllMarkers();
     }
 
     public void addNewCar(EditText editAddCar){
@@ -226,7 +247,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void initMap(){
+    public void initMap() {
+        //init markers map
+        markersMap = new HashMap<>();
+
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_main);
         mapFragment.getMapAsync(googleMap -> {
             // set map type
@@ -247,6 +271,14 @@ public class MainActivity extends AppCompatActivity {
 
             this.map = googleMap;
 
+            //restores all markers previously preserved in the viewModel
+            for (Map.Entry<Long, MarkerOptions> entry : DBViewModel.getMarkerOptionsMap().entrySet()) {
+                //restore marker to map if not already restored (if restored the corresponding value
+                //of the entry in the Marker objects map is not null)
+                if (this.markersMap.get(entry.getKey()) == null) {
+                    this.addParkMarker(entry.getValue(), entry.getKey());
+                }
+            }
         });
     }
 
@@ -267,6 +299,8 @@ public class MainActivity extends AppCompatActivity {
     public void insertPark(ParkAddress addr) {
         //get current time in millis
         long currentTime = Calendar.getInstance().getTimeInMillis();
+        //updates current markers present on map to old markers
+        this.setPreviusCurrMarkersToOldMarkers();
 
         //create new park
         Park p = new Park(addr, this.getCurrentCarId(), currentTime);
@@ -323,31 +357,149 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void addCurrentParkMarker(){
+    /*
+    Generates MarkerOptions for current park, adds it to markerOptionsMap and calls addParkMarker method
+     */
+    public void addCurrParkMarker(Park park) {
+        if(markersMap.get(park.getParkId()) == null) {
+            //create MarkerOptions
+            LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
+            MarkerOptions m = new MarkerOptions()
+                    .position(position);
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapCurrentMarker);
+            m.icon(icon);
+            //adds MarkerOptions to map data structure to preserve it
+            DBViewModel.putMarkerOptions(park.getParkId(), m);
+            //adds isCurrent info to map
+            DBViewModel.putMarkerIsCurr(park.getParkId(), Boolean.TRUE);
 
+            addParkMarker(m, park.getParkId());
+        }
     }
 
-    public void addParkMarker(Park park){
-        LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
-        this.map.addMarker(new MarkerOptions()
-        .position(position));
+    /*
+    Generates MarkerOptions for old park, adds it to markerOptionsMap and calls addParkMarker method
+    */
+    public void addOldParkMarker(Park park) {
+        if(markersMap.get(park.getParkId()) == null) {
+            //create MarkerOptions
+            LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
+            MarkerOptions m = new MarkerOptions()
+                    .position(position);
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapOldMarker);
+            m.icon(icon);
+            //adds MarkerOptions to map data structure to preserve it
+            DBViewModel.putMarkerOptions(park.getParkId(), m);
+            //adds isCurrentMarker info to map
+            DBViewModel.putMarkerIsCurr(park.getParkId(), Boolean.FALSE);
+
+            addParkMarker(m, park.getParkId());
+        }
     }
 
+    /*
+    Add marker to GoogleMap from MarkerOptions and generated Marker Object to markersMap data structure.
+    Called both for current and old park markers
+     */
+    public void addParkMarker(MarkerOptions m, long parkId){
+        //adds marker to GoogleMap if already loaded
+        if (this.map != null){
+            Marker marker = this.map.addMarker(m);
+
+            //adds marker to Map for later deletion or modification
+            this.markersMap.put(parkId, marker);
+        }
+
+        //TODO: focus on marker
+    }
+
+    /*
+   Returns if a marker refers to a current park, based on the value of a map in the viewModel
+    */
+    public boolean isCurrentParkMarker(long parkId) {
+        if (DBViewModel.getMarkerIsCurr(parkId)) return true;
+        else return false;
+    }
+
+    /*
+   Updates all current park markers to old park markers.
+    */
+    public void setPreviusCurrMarkersToOldMarkers() {
+        for(Map.Entry<Long, Marker> entry : markersMap.entrySet()) {
+            if (isCurrentParkMarker(entry.getKey())) {
+                //updates value in isCurrentMarker map of viewModel to false
+                DBViewModel.putMarkerIsCurr(entry.getKey(), false);
+                //update markerOptions
+                MarkerOptions m = DBViewModel.getMarkerOptions(entry.getKey());
+                BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapOldMarker);
+                m.icon(icon);
+                //adds MarkerOptions to map data structure to preserve it
+                DBViewModel.putMarkerOptions(entry.getKey(), m);
+                //updates Marker
+                entry.getValue().setIcon(icon);
+            }
+        }
+    }
+
+    /*
+    Remove all markers from the GoogleMap and the maps used to keep track of markers
+     */
+    public void removeAllMarkers() {
+        for(Marker m : this.markersMap.values()) {
+            m.remove();
+            Log.d("mytag", "removeAllMarkers: marker with tag: "+m.getTag());
+        }
+        //reset Markers, MarkerOptions and isCurrentMarker maps
+        markersMap.clear();
+        DBViewModel.resetMarkerOptionsMap();
+        DBViewModel.resetMarkerIsCurrMap();
+    }
+
+    /*
+    Remove the marker associated to a single park from GoogleMap and data structures
+     */
+    public void removeMarker(long parkId) {
+        Marker marker;
+        if((marker = this.markersMap.get(parkId)) != null) marker.remove();
+        //remove values with parkId key from Markers, MarkerOptions and isCurrentMarker maps
+        this.markersMap.remove(parkId);
+        DBViewModel.removeMarkerOptions(parkId);
+        DBViewModel.removeMarkerIsCurr(parkId);
+    }
+
+    /*
+    Set endtime for current park, so it becomes an old park
+     */
     public void dismissPark(Park park){
         //get current time in millis
         long endTime = Calendar.getInstance().getTimeInMillis();
         DBViewModel.dismissPark(park, endTime);
     }
 
-    public static String getDate(long milliSeconds, String dateFormat)
-    {
-        // Create a DateFormatter object for displaying date in specified format.
+    /*
+    Returns string representing date in the format passed as an argument of millis from epoch
+     */
+    public static String getDate(long milliSeconds, String dateFormat) {
+        // Create a DateFormatter object for displaying date in specified format
         SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
 
-        // Create a calendar object that will convert the date and time value in milliseconds to date.
+        // Create a calendar object that will convert the date and time value in milliseconds to date
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(milliSeconds);
         return formatter.format(calendar.getTime());
+    }
+
+    /*
+    Generates bitmap from resource id of drawable vector.
+    From https://stackoverflow.com/questions/33696488/getting-bitmap-from-vector-drawable
+     */
+    public Bitmap generateBitmapFromVector(int resourceId) {
+        Drawable drawable = getDrawable(resourceId);
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
 }

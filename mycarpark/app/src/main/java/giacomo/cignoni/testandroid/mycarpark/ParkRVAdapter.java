@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,7 +24,8 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
             protected TextView textParkAddrLine1;
             protected TextView textParkAddrLine2;
             protected TextView textTime;
-            private CardView cardView;
+            protected CardView cardView;
+            protected ImageButton buttonMore;
 
 
             public ParkViewHolder(View itemView, MainActivity mainActivity) {
@@ -33,8 +35,10 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 textParkAddrLine2 = itemView.findViewById(R.id.textview_addr_line2);
                 textTime = itemView.findViewById(R.id.textview_time);
                 cardView = itemView.findViewById(R.id.cardview_park);
+                buttonMore = itemView.findViewById(R.id.button_more_park);
 
                 cardView.setOnClickListener(this);
+                buttonMore.setOnClickListener(this);
             }
 
             public void bind(Park p) {
@@ -56,10 +60,15 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
             @Override
             public void onClick(View v) {
                 switch (v.getId()) {
-                    case R.id.cardview_park:
-                        mainActivity.addParkMarker(this.park);
+                    case R.id.cardview_park: {
+                        mainActivity.addOldParkMarker(this.park);
                         Log.d("mytag", "onClick cardPark marker ");
                         break;
+                    }
+                    case R.id.button_more_park: {
+
+                        break;
+                    }
                 }
 
             }
@@ -80,6 +89,8 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
            super.bind(p);
            if( super.park.getEndTime() == 0) {
                super.textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm"));
+               //adds marker on map
+               super.mainActivity.addCurrParkMarker(p);
            }
         }
 
