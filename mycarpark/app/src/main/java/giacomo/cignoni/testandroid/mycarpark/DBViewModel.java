@@ -86,6 +86,12 @@ public class DBViewModel extends AndroidViewModel {
         });
     }
 
+    public void deletePark (Park p) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+           parkDao.delete(p);
+        });
+    }
+
     public Car getCurrentCar() {
         return currentCar;
     }
@@ -97,12 +103,6 @@ public class DBViewModel extends AndroidViewModel {
     public void dismissPark(Park p, Long endTime){
         AppDatabase.databaseWriteExecutor.execute(() ->
                 parkDao.dismissPark(p.getParkId(), endTime)
-        );
-    }
-
-    public void dismissAllCurrentParks(Car currentCar, long endTime){
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.dismissAllCurrentParks(currentCar.getCarId(), endTime)
         );
     }
 

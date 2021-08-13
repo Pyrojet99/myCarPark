@@ -2,10 +2,13 @@ package giacomo.cignoni.testandroid.mycarpark;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -57,16 +60,34 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 return new ParkViewHolder(view, ma);
             }
 
+            protected void showMorePopup() {
+                PopupMenu popup = new PopupMenu(mainActivity, buttonMore);
+                MenuInflater inflater = popup.getMenuInflater();
+                inflater.inflate(R.menu.more_park_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(item -> {
+                    switch (item.getItemId()) {
+                        case R.id.menu_item_park_remove: {
+                            mainActivity.deletePark(this.park);
+                            return true;
+                        }
+                        default:
+                            return false;
+                    }
+                });
+                popup.show();
+            }
+
             @Override
             public void onClick(View v) {
                 switch (v.getId()) {
                     case R.id.cardview_park: {
+                        //adds marker when tapping on old park card
                         mainActivity.addOldParkMarker(this.park);
                         Log.d("mytag", "onClick cardPark marker ");
                         break;
                     }
                     case R.id.button_more_park: {
-
+                        this.showMorePopup();
                         break;
                     }
                 }
@@ -103,10 +124,18 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
-                case R.id.button_dismiss_park:
+                case R.id.cardview_park: {
+                    super.mainActivity.centerCameraOnMarker(super.park.getParkId());
+                    break;
+                }
+                case R.id.button_dismiss_park: {
                     super.mainActivity.dismissPark(super.park);
                     break;
-
+                }
+                case R.id.button_more_park: {
+                    super.showMorePopup();
+                    break;
+                }
             }
         }
     }

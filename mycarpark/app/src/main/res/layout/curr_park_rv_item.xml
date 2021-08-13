@@ -32,7 +32,6 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginRight="8dp"
 
-                app:layout_constraintEnd_toStartOf="@+id/imageButton"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 

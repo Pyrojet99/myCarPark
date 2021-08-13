@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_drag_handle_24.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_more_vert_18.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_car_current_24_vect.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_car_old_24_vect.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_launcher_background.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/layout/curr_park_rv_item.xml" value="0.12817028985507245" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/menu/more_park_menu.xml" value="0.184375" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>

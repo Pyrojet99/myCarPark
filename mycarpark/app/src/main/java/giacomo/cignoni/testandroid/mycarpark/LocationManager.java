@@ -76,20 +76,18 @@ public class LocationManager {
             Toast.makeText(mainActivity.getApplicationContext(), "location got", Toast.LENGTH_SHORT).show();
             Log.d("mytag", "addNewLocation: posizione presa "+location.getLatitude()+" "+
                     location.getLongitude());
-            reverseGeocode(location);
+            reverseGeocode(location.getLatitude(), location.getLongitude());
 
         });
         //locationTask.addOnFailureListener();
     }
 
-    public void reverseGeocode(Location location){
+    public void reverseGeocode(double latitude, double longitude){
         geocodeExecutor.execute(() -> {
             Address addr;
             List<Address> listAddresses = null;
             try {
-                listAddresses = geocoder.getFromLocation(location.getLatitude(),
-                        location.getLongitude(),
-                        1);
+                listAddresses = geocoder.getFromLocation(latitude, longitude, 1);
             } catch (IOException e) {
                 e.printStackTrace();
             }
