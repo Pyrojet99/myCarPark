@@ -3,13 +3,17 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_add_alarm_24.xml" value="0.17222222222222222" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.17592592592592593" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_drag_handle_24.xml" value="0.17592592592592593" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_expand_less_24.xml" value="0.17222222222222222" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_expand_more_24.xml" value="0.17222222222222222" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_baseline_more_vert_18.xml" value="0.17592592592592593" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_car_current_24_vect.xml" value="0.17592592592592593" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_car_old_24_vect.xml" value="0.17592592592592593" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/drawable/ic_launcher_background.xml" value="0.17592592592592593" />
-        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/layout/curr_park_rv_item.xml" value="0.12817028985507245" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/layout/curr_park_rv_item.xml" value="0.4466666666666667" />
+        <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/layout/park_rv_item.xml" value="0.12273550724637682" />
         <entry key="..\:/Users/giaco/Desktop/devel/github/mycarpark/mycarpark/app/src/main/res/menu/more_park_menu.xml" value="0.184375" />
       </map>
     </option>

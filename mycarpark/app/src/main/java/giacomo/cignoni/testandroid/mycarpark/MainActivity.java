@@ -59,6 +59,11 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
     private FloatingActionButton fabAddLocation;
     private TextView textViewCurrCar;
+    private LinearLayout hiddenTopBar;
+    private CardView cardTopBar;
+    private ImageButton topExpandArrow;
+
+
 
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
@@ -120,6 +125,12 @@ public class MainActivity extends AppCompatActivity {
             DBViewModel.getCurrentCarParks().observe(ma, parks -> {
                 // Update the cached copy of the parks in the adapter
                 parkAdapter.submitList(parks);
+
+                /*//sets collapsed height of bottom sheet as first RV element height
+                this.bottomSheetBehavior.setPeekHeight(
+                        rvPark.getLayoutManager().findViewByPosition(0).getHeight());
+
+                 */
             });
         }
 
@@ -180,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
 
         //resets map markers
         this.removeAllMarkers();
+
+        //closes top bar
+        this.toggleExpandTopBar();
     }
 
     public void addNewCar(EditText editAddCar) {
@@ -208,9 +222,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initTopBar() {
-        LinearLayout hiddenTopBar = findViewById(R.id.layout_hidden_top_bar);
-        CardView cardTopBar = findViewById(R.id.card_top_bar);
-        ImageButton expandArrow = findViewById(R.id.button_expand_arrow);
+        hiddenTopBar = findViewById(R.id.layout_hidden_top_bar);
+        cardTopBar = findViewById(R.id.card_top_bar);
+        topExpandArrow = findViewById(R.id.button_expand_arrow);
         textViewCurrCar = findViewById(R.id.textview_curr_car);
 
         //init add car
@@ -231,32 +245,34 @@ public class MainActivity extends AppCompatActivity {
         //init cars recycler
         initCarRecyclerView();
 
-        expandArrow.setOnClickListener(v -> {
-            Log.d("mytag", "expandedArrow: cliccato ");
-            //TODO: close keyboard if open
+        topExpandArrow.setOnClickListener(v -> this.toggleExpandTopBar());
+    }
 
-            // If the CardView is already expanded, set its visibility
-            //  to gone and change the expand less icon to expand more.
-            if (hiddenTopBar.getVisibility() == View.VISIBLE) {
+    public void toggleExpandTopBar() {
+        Log.d("mytag", "expandedArrow: cliccato ");
+        //TODO: close keyboard if open
 
-                // The transition of the hiddenView is carried out
-                //  by the TransitionManager class.
-                // Here we use an object of the AutoTransition
-                // Class to create a default transition.
-                TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
-                hiddenTopBar.setVisibility(View.GONE);
-                //arrow.setImageResource(R.drawable.ic_baseline_expand_more_24);
-            }
+        // If the CardView is already expanded, set its visibility
+        //  to gone and change the expand less icon to expand more.
+        if (hiddenTopBar.getVisibility() == View.VISIBLE) {
 
-            // If the CardView is not expanded, set its visibility
-            // to visible and change the expand more icon to expand less.
-            else {
+            // The transition of the hiddenView is carried out
+            //  by the TransitionManager class.
+            // Here we use an object of the AutoTransition
+            // Class to create a default transition.
+            TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
+            hiddenTopBar.setVisibility(View.GONE);
+            topExpandArrow.setImageResource(R.drawable.ic_baseline_expand_more_24);
+        }
 
-                TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
-                hiddenTopBar.setVisibility(View.VISIBLE);
-                //arrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
-            }
-        });
+        // If the CardView is not expanded, set its visibility
+        // to visible and change the expand more icon to expand less.
+        else {
+
+            TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
+            hiddenTopBar.setVisibility(View.VISIBLE);
+            topExpandArrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
+        }
     }
 
     public void initMap() {
@@ -269,6 +285,8 @@ public class MainActivity extends AppCompatActivity {
             googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //disable zoom controls
             googleMap.getUiSettings().setZoomControlsEnabled(false);
+            //sets top padding for map controls
+            googleMap.setPadding(0, 256, 0, 0);
 
             //sets longonclick listener to add new current park on long press
             googleMap.setOnMapLongClickListener(latLng -> {
@@ -373,29 +391,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBottomSheet() {
-        //non necessario! (per ora)
-        
         // get the bottom sheet view
         LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
-
         // init the bottom sheet behavior
         bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
-
         // change the state of the bottom sheet
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
 
-        // set callback for changes
-        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
-        });
+    public BottomSheetBehavior getBottomSheetBehavior() {
+        return bottomSheetBehavior;
     }
 
     /*
@@ -436,6 +441,10 @@ public class MainActivity extends AppCompatActivity {
 
             addParkMarker(m, park.getParkId());
         }
+        else {
+            //if new marker is not created, focus on existing marker
+            centerCameraOnMarker(park.getParkId());
+        }
     }
 
     /*
@@ -443,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
     Called both for current and old park markers
      */
     public void addParkMarker(MarkerOptions m, long parkId) {
-        Marker marker = null;
+        Marker marker;
         //adds marker to GoogleMap if already loaded
         if (this.map != null){
             marker = this.map.addMarker(m);
@@ -461,9 +470,12 @@ public class MainActivity extends AppCompatActivity {
     Centers map camera on marker corresponding to a parkId if present on the map
      */
     public void centerCameraOnMarker(long parkId) {
-        Marker marker = null;
+        Marker marker;
         if ((marker = this.markersMap.get(parkId)) != null) {
             this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), DEFAULT_MAP_ZOOM));
+
+            //closes bottomSheet to show map
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
     }
 

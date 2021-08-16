@@ -46,9 +46,31 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
             public void bind(Park p) {
                 this.park = p;
+                //initialize address textviews
+                textParkAddrLine1.setText("");
+                textParkAddrLine2.setText("");
 
-                textParkAddrLine1.setText(p.getAddress().getThoroughfare());
-                textParkAddrLine2.setText(p.getAddress().getLocality()+ " " + p.getParkedCarId());
+                if (p.getAddress().getLocality() != null) {
+                    //uses locality if present
+                    textParkAddrLine2.setText(p.getAddress().getLocality()+ " " + p.getParkedCarId());
+                }
+                if (p.getAddress().getThoroughfare() != null) {
+                    //uses thoroughfare if present
+                    String addrLine1 = p.getAddress().getThoroughfare();
+                    if (p.getAddress().getSubThoroughfare() != null) {
+                        //uses subThoroughfare if present
+                        addrLine1 = addrLine1 + ", " + p.getAddress().getSubThoroughfare();
+                    }
+                    textParkAddrLine1.setText(addrLine1);
+                }
+                if (p.getAddress().getThoroughfare() == null
+                        && p.getAddress().getLocality() == null) {
+                    //if both thoroughfare and locality are null, uses lat and long instead
+                    textParkAddrLine1.setText("Lat: " + p.getAddress().getLatitude());
+                    textParkAddrLine2.setText("Long: " + (p.getAddress().getLongitude()));
+                }
+
+                //sets end and start time
                 textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm")
                         + " - " + MainActivity.getDate(p.getEndTime(), "dd/MM/yyyy HH:mm"));
 
@@ -83,7 +105,6 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                     case R.id.cardview_park: {
                         //adds marker when tapping on old park card
                         mainActivity.addOldParkMarker(this.park);
-                        Log.d("mytag", "onClick cardPark marker ");
                         break;
                     }
                     case R.id.button_more_park: {
@@ -108,7 +129,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         @Override
         public void bind(Park p) {
            super.bind(p);
-           if( super.park.getEndTime() == 0) {
+           if (super.park.getEndTime() == 0) {
                super.textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm"));
                //adds marker on map
                super.mainActivity.addCurrParkMarker(p);
@@ -171,11 +192,26 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
             //bind current park
             CurrentParkViewHolder currParkViewHolder = (CurrentParkViewHolder) holder;
             currParkViewHolder.bind(parkToBind);
+            //if first item in recyclerview, set bottomSheet collapsed height to item height
+            if (position == 0) setBottomSheetHeight(currParkViewHolder.itemView);
+
         } else {
             //bind non-current park
             ParkViewHolder parkViewHolder = (ParkViewHolder) holder;
             parkViewHolder.bind(parkToBind);
+            //if first item in recyclerview, set bottomSheet collapsed height to item height
+            if (position == 0) setBottomSheetHeight(parkViewHolder.itemView);
         }
+
+    }
+
+    /*
+    Measures itemView height and sets bottomSheet height to measured height
+     */
+    private void setBottomSheetHeight(View itemView) {
+        itemView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int height = itemView.getMeasuredHeight();
+        mainActivity.getBottomSheetBehavior().setPeekHeight(height + 72);
     }
 
 

@@ -1,16 +1,18 @@
 package giacomo.cignoni.testandroid.mycarpark;
 
 public class ParkAddress {
-    double latitude;
-    double longitude;
-    String locality;
-    String thoroughfare;
+    private double latitude;
+    private double longitude;
+    private String locality;
+    private String thoroughfare;
+    private String subThoroughfare;
 
-    ParkAddress(double latitude, double longitude, String locality, String thoroughfare){
+    ParkAddress(double latitude, double longitude, String locality, String thoroughfare, String subThoroughfare){
         this.latitude = latitude;
         this.longitude = longitude;
         this.locality = locality;
         this.thoroughfare = thoroughfare;
+        this.subThoroughfare = subThoroughfare;
     }
 
     public void setLatitude(double latitude) {
@@ -43,5 +45,13 @@ public class ParkAddress {
 
     public String getThoroughfare() {
         return thoroughfare;
+    }
+
+    public String getSubThoroughfare() {
+        return subThoroughfare;
+    }
+
+    public void setSubThoroughfare(String subThoroughfare) {
+        this.subThoroughfare = subThoroughfare;
     }
 }

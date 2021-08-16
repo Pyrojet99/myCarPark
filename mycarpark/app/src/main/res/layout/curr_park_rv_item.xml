@@ -17,7 +17,6 @@
         app:cardElevation="2dp"
         >
 
-
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -78,18 +77,19 @@
                 android:text="dismiss"
                 android:textColor="?colorOnSecondary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textview_addr_line2"/>
+                app:layout_constraintTop_toBottomOf="@+id/textview_addr_line2" />
 
-            <Button
-                android:id="@+id/placeholder_button2"
-                android:layout_width="0dp"
+            <ImageButton
+                android:id="@+id/button_alarm"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:backgroundTint="?colorSecondary"
-                android:text="placeholder2"
-                android:textColor="?colorOnSecondary"
+                android:layout_marginStart="32dp"
+                android:background="@color/transparent"
+                app:layout_constraintBottom_toBottomOf="@+id/button_dismiss_park"
                 app:layout_constraintStart_toEndOf="@+id/button_dismiss_park"
-                app:layout_constraintTop_toBottomOf="@+id/textview_time" />
+                app:layout_constraintTop_toTopOf="@+id/button_dismiss_park"
+                app:srcCompat="@drawable/ic_baseline_add_alarm_24" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

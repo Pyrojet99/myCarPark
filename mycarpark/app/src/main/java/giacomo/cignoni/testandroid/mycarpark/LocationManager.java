@@ -97,15 +97,22 @@ public class LocationManager {
             else{
                 addr = listAddresses.get(0);
             }
-            Log.d("mytag", "addNewLocation: address preso "+ addr.getLocality());
             mainActivity.runOnUiThread(() -> {
-                //TextView textView = mainActivity.findViewById(R.id.textView1);
-                 //textView.setText(addr.getLocality()+" "+addr.getThoroughfare());
 
-                //create new ParkAddress
-                ParkAddress pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
-                        addr.getLocality(), addr.getThoroughfare());
+                ParkAddress pAddr;
+                if(addr != null) {
+                    //create new ParkAddress
+                    pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
+                            addr.getLocality(), addr.getThoroughfare(), addr.getSubThoroughfare());
+                }
+                else {
+                    //create ParkAddress with only latitude and longitude
+                    pAddr = new ParkAddress(latitude, longitude,
+                            null, null, null);
+
+                }
                 mainActivity.insertPark(pAddr);
+
             });
 
         });
