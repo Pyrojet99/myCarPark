@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
     private CardView cardTopBar;
     private ImageButton topExpandArrow;
 
+    // register the permissions callback
+    private ActivityResultLauncher<String> requestPermissionLauncher;
+
+
 
 
     private RecyclerView rvPark;
@@ -84,8 +88,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
+        //initializes requestPermissionLauncher with callback
+        requestPermissionLauncher = this.registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                            if (isGranted) {
+                                // permission is granted
+                                Log.d("mytag", "addNewLocation:  permission granted after dialog");
+                                //start again addMapCurrPosition
+                                addMapCurrPosition();
+
+                            } else {
+                                // Explain to the user that the feature is unavailable
+                                Toast.makeText(this.getApplicationContext(), "location permession not granted after dialog", Toast.LENGTH_SHORT).show();
+
+                            }
+                });
 
         //generates bitmaps for map markers
         bitmapCurrentMarker = generateBitmapFromVector(R.drawable.ic_car_current_24_vect);
@@ -93,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
         //base coordinator layout
         coordinatorLayout = findViewById(R.id.coordinator_layout_base);
+
+        locationManager = new LocationManager(this);
 
         //init bottom sheet
         initBottomSheet();
@@ -159,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        locationManager = new LocationManager(this);
 
         //init new location button
         initFabAddLocation();
@@ -281,6 +301,9 @@ public class MainActivity extends AppCompatActivity {
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_main);
         mapFragment.getMapAsync(googleMap -> {
+            this.map = googleMap;
+
+
             // set map type
             googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             //disable zoom controls
@@ -288,23 +311,14 @@ public class MainActivity extends AppCompatActivity {
             //sets top padding for map controls
             googleMap.setPadding(0, 256, 0, 0);
 
+            this.addMapCurrPosition();
+
             //sets longonclick listener to add new current park on long press
             googleMap.setOnMapLongClickListener(latLng -> {
                 locationManager.reverseGeocode(latLng.latitude, latLng.longitude);
             });
 
-            //shows current location
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            googleMap.setMyLocationEnabled(true);
+
 
             // Enable compass icon - already enabled
             //googleMap.getUiSettings().setCompassEnabled(true);
@@ -317,7 +331,6 @@ public class MainActivity extends AppCompatActivity {
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);
 
-            this.map = googleMap;
 
             //restores all markers previously preserved in the viewModel
             for (Map.Entry<Long, MarkerOptions> entry : DBViewModel.getMarkerOptionsMap().entrySet()) {
@@ -328,6 +341,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    /*
+    Checks location permissions to add current location to map
+     */
+    public void addMapCurrPosition() {
+        //checks and requests location permissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("mytag", "addNewLocation: no permission location");
+            requestPermissionLauncher.launch(
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+            return;
+        }
+        this.map.setMyLocationEnabled(true);
     }
 
     public DBViewModel getDBViewModel(){

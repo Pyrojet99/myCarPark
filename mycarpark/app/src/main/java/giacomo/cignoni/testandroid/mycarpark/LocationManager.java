@@ -43,25 +43,23 @@ public class LocationManager {
         requestPermissionLauncher =
         mainActivity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
             if (isGranted) {
-                // Permission is granted. Continue the action or workflow in your
-                // app.
-                Log.d("mytag", "addNewLocation: no permission granted after dialog");
+                // permission is granted
+                Log.d("mytag", "addNewLocation:  permission granted after dialog");
+                //start again setCurrentLocation
+                setCurrentLocation();
 
             } else {
-                // Explain to the user that the feature is unavailable because the
-                // features requires a permission that the user has denied. At the
-                // same time, respect the user's decision. Don't link to system
-                // settings in an effort to convince the user to change their
-                // decision.
-                Toast.makeText(mainActivity.getApplicationContext(), "location permession not granted", Toast.LENGTH_SHORT).show();
+                // Explain to the user that the feature is unavailable
+                Toast.makeText(mainActivity.getApplicationContext(), "location permession not granted after dialog", Toast.LENGTH_SHORT).show();
 
             }
         });
     }
 
-    public void setCurrentLocation(){
+    public void setCurrentLocation() {
         //TODO: check settings for location enabled https://developer.android.com/training/location/change-location-settings
 
+        //checks for permission and requests it in case
         if (ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d("mytag", "addNewLocation: no permission location");
             requestPermissionLauncher.launch(
@@ -69,20 +67,21 @@ public class LocationManager {
             return;
         }
 
+        //makes single location request
         Task<Location> locationTask = fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null);
         locationTask.addOnCompleteListener(task -> {
             Location location = task.getResult();
 
             Toast.makeText(mainActivity.getApplicationContext(), "location got", Toast.LENGTH_SHORT).show();
-            Log.d("mytag", "addNewLocation: posizione presa "+location.getLatitude()+" "+
-                    location.getLongitude());
             reverseGeocode(location.getLatitude(), location.getLongitude());
 
         });
-        //locationTask.addOnFailureListener();
+        locationTask.addOnFailureListener(task -> {
+            Toast.makeText(mainActivity.getApplicationContext(), "unable to get current location", Toast.LENGTH_SHORT).show();
+        });
     }
 
-    public void reverseGeocode(double latitude, double longitude){
+    public void reverseGeocode(double latitude, double longitude) {
         geocodeExecutor.execute(() -> {
             Address addr;
             List<Address> listAddresses = null;
