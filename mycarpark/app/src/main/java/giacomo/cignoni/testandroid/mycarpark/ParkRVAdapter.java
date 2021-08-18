@@ -118,12 +118,15 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
     public static class CurrentParkViewHolder extends ParkViewHolder implements View.OnClickListener {
         private Button buttonDismiss;
+        private ImageButton buttonAlarm;
 
 
         public CurrentParkViewHolder(View itemView, MainActivity mainActivity) {
             super(itemView, mainActivity);
             buttonDismiss = itemView.findViewById(R.id.button_dismiss_park);
+            buttonAlarm = itemView.findViewById(R.id.button_alarm);
             buttonDismiss.setOnClickListener(this);
+            buttonAlarm.setOnClickListener(this);
         }
 
         @Override
@@ -155,6 +158,11 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 }
                 case R.id.button_more_park: {
                     super.showMorePopup();
+                    break;
+                }
+                case R.id.button_alarm: {
+                    mainActivity.getAlarmManager().setCurrentPark(park);
+                    mainActivity.getAlarmManager().showDialog();
                     break;
                 }
             }
@@ -209,6 +217,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
     Measures itemView height and sets bottomSheet height to measured height
      */
     private void setBottomSheetHeight(View itemView) {
+        //from https://stackoverflow.com/questions/8200896/how-to-find-the-width-of-the-a-view-before-the-view-is-displayed
         itemView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         int height = itemView.getMeasuredHeight();
         mainActivity.getBottomSheetBehavior().setPeekHeight(height + 72);
