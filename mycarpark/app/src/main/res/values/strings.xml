@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MyCarPark</string>
+    <string name="notification_channel_name">MyCarPark Notifications</string>
+    <string name="notificaation_title">Park is expiring</string>
 </resources>

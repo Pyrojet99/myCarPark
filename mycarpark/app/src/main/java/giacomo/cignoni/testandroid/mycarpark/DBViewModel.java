@@ -48,16 +48,6 @@ public class DBViewModel extends AndroidViewModel {
         markerIsCurrParkMap = new HashMap<>();
     }
 
-    LiveData<List<Car>> getAllCars() { return liveCarList; }
-
-    LiveData<Car> getLiveInitialCurrentCar() { return liveInitialCurrentCar; }
-
-    public void insertCar(Car c) {
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                carDao.insert(c)
-        );
-    }
-
     //update isCurrent field in Car with specified boolean value
     public void updateIsCurrentCar(long carId, boolean isCurrent) {
         AppDatabase.databaseWriteExecutor.execute(() ->
@@ -67,10 +57,6 @@ public class DBViewModel extends AndroidViewModel {
 
     public LiveData<List<Park>> getCurrentCarParks() {
         return liveParkList;
-    }
-
-    public void resetInitialCurrentCar(){
-        liveInitialCurrentCar = null;
     }
 
     public void updateParksByCurrentCarId(long newCarId){
@@ -86,10 +72,32 @@ public class DBViewModel extends AndroidViewModel {
         });
     }
 
-    public void deletePark (Park p) {
+    public void deletePark(Park p) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
            parkDao.delete(p);
         });
+    }
+
+    public void setParkAlarmTime(Park p, long alarmTime) {
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                parkDao.setAlarmTime(p.getParkId(), alarmTime)
+        );
+    }
+
+    public void dismissPark(Park p, Long endTime){
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                parkDao.dismissPark(p.getParkId(), endTime)
+        );
+    }
+
+    LiveData<List<Car>> getAllCars() { return liveCarList; }
+
+    LiveData<Car> getLiveInitialCurrentCar() { return liveInitialCurrentCar; }
+
+    public void insertCar(Car c) {
+        AppDatabase.databaseWriteExecutor.execute(() ->
+                carDao.insert(c)
+        );
     }
 
     public Car getCurrentCar() {
@@ -100,11 +108,8 @@ public class DBViewModel extends AndroidViewModel {
         this.currentCar = currentCar;
     }
 
-    public void dismissPark(Park p, Long endTime){
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.dismissPark(p.getParkId(), endTime)
-        );
-    }
+
+
 
     /*
     Add marker to markersList

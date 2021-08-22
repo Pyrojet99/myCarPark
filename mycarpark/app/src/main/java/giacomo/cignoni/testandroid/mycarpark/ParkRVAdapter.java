@@ -3,19 +3,21 @@ package giacomo.cignoni.testandroid.mycarpark;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.chip.Chip;
 
 public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
@@ -118,15 +120,22 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
     public static class CurrentParkViewHolder extends ParkViewHolder implements View.OnClickListener {
         private Button buttonDismiss;
-        private ImageButton buttonAlarm;
+        private ViewSwitcher viewSwitcherAlarm;
+        private ImageButton buttonAddAlarm;
+        private Chip chipAlarm;
+        private boolean isSwitcherShowingButton;
 
 
         public CurrentParkViewHolder(View itemView, MainActivity mainActivity) {
             super(itemView, mainActivity);
+            isSwitcherShowingButton = true;
             buttonDismiss = itemView.findViewById(R.id.button_dismiss_park);
-            buttonAlarm = itemView.findViewById(R.id.button_alarm);
+            viewSwitcherAlarm = itemView.findViewById(R.id.viewswitcher_alarm);
+            chipAlarm = itemView.findViewById(R.id.chip_alarm);
+            buttonAddAlarm = itemView.findViewById(R.id.button_add_alarm);
             buttonDismiss.setOnClickListener(this);
-            buttonAlarm.setOnClickListener(this);
+            buttonAddAlarm.setOnClickListener(this);
+            chipAlarm.setOnCloseIconClickListener(this);
         }
 
         @Override
@@ -136,6 +145,25 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                super.textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm"));
                //adds marker on map
                super.mainActivity.addCurrParkMarker(p);
+           }
+
+           Log.d("mytag", "bind currPark: isSwitcherShowingButton "+ isSwitcherShowingButton);
+           if (p.getAlarmTime() != 0) {
+               //if alarm time has been set
+               chipAlarm.setText(MainActivity.getDate(p.getAlarmTime(), "HH:mm dd/MM"));
+               if (isSwitcherShowingButton) {
+                   //flip the switcher to show the chip
+                   viewSwitcherAlarm.showNext();
+                   isSwitcherShowingButton = false;
+               }
+           }
+           else {
+               //alarm has not been set
+               if(!isSwitcherShowingButton) {
+                   //flip the switch to show add alarm button
+                   viewSwitcherAlarm.showNext();
+                   isSwitcherShowingButton = true;
+               }
            }
         }
 
@@ -160,9 +188,15 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                     super.showMorePopup();
                     break;
                 }
-                case R.id.button_alarm: {
-                    mainActivity.getAlarmManager().setCurrentPark(park);
-                    mainActivity.getAlarmManager().showDialog();
+                case R.id.button_add_alarm: {
+                    //shows dialog
+                    mainActivity.getAlarmUtility().showDialog(park);
+                    break;
+                }
+                case R.id.chip_alarm: {
+                    viewSwitcherAlarm.showNext();
+                    isSwitcherShowingButton = true;
+                    mainActivity.getAlarmUtility().removeAlarm(park);
                     break;
                 }
             }

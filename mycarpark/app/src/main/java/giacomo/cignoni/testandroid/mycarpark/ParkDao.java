@@ -23,6 +23,9 @@ public interface ParkDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Park p);
 
+    @Query("UPDATE Park SET alarmTime = :alarmTime WHERE parkId LIKE :parkId")
+    void setAlarmTime(Long parkId, long alarmTime);
+
     @Query("UPDATE Park SET endTime = :endTime WHERE parkId LIKE :parkId")
     void dismissPark(Long parkId, long endTime);
 

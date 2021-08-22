@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class LocationManager {
+public class LocationUtility {
     private MainActivity mainActivity;
     private FusedLocationProviderClient fusedLocationClient;
     private Geocoder geocoder;
@@ -35,7 +35,7 @@ public class LocationManager {
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
 
-    public LocationManager(MainActivity ma){
+    public LocationUtility(MainActivity ma){
         this.mainActivity = ma;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(mainActivity);
         geocoder = new Geocoder(mainActivity);

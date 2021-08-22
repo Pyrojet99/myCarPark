@@ -14,11 +14,13 @@ public class Park {
     private long parkedCarId;
     private long startTime;
     private long endTime;
+    private long alarmTime;
 
     public Park(ParkAddress address, long parkedCarId, long startTime){
         this.address = address;
         this.parkedCarId = parkedCarId;
         this.startTime = startTime;
+        this.alarmTime = 0;
     }
 
     public long getParkId() {
@@ -59,5 +61,13 @@ public class Park {
 
     public void setEndTime(long endTime) {
         this.endTime = endTime;
+    }
+
+    public void setAlarmTime(long alarmTime) {
+        this.alarmTime = alarmTime;
+    }
+
+    public long getAlarmTime() {
+        return alarmTime;
     }
 }

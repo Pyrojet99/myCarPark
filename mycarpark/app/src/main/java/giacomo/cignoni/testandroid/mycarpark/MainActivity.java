@@ -32,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -64,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
     // register the permissions callback
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
-    private LocationManager locationManager;
-    private AlarmManager alarmManager;
+    private LocationUtility locationUtility;
+    private AlarmUtility alarmUtility;
 
 
     private RecyclerView rvPark;
@@ -112,10 +113,10 @@ public class MainActivity extends AppCompatActivity {
         //base coordinator layout
         coordinatorLayout = findViewById(R.id.coordinator_layout_base);
 
-        locationManager = new LocationManager(this);
+        locationUtility = new LocationUtility(this);
 
-        //initializes alarmManager
-        alarmManager = new AlarmManager(this);
+        //initializes alarmUtility
+        alarmUtility = new AlarmUtility(this);
 
         //init bottom sheet
         initBottomSheet();
@@ -315,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
             //sets longonclick listener to add new current park on long press
             googleMap.setOnMapLongClickListener(latLng -> {
-                locationManager.reverseGeocode(latLng.latitude, latLng.longitude);
+                locationUtility.reverseGeocode(latLng.latitude, latLng.longitude);
             });
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);
@@ -351,8 +352,8 @@ public class MainActivity extends AppCompatActivity {
         return DBViewModel;
     }
 
-    public AlarmManager getAlarmManager() {
-        return this.alarmManager;
+    public AlarmUtility getAlarmUtility() {
+        return this.alarmUtility;
     }
 
     public long getCurrentCarId() {
@@ -362,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void addNewLocation() {
         Log.d("mytag", "addNewLocation: cliccato ");
-        locationManager.setCurrentLocation();
+        locationUtility.setCurrentLocation();
     }
 
     public void insertPark(ParkAddress addr) {
@@ -386,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
     public void deletePark(Park p) {
         DBViewModel.deletePark(p);
         removeMarker(p.getParkId());
+        alarmUtility.removeAlarm(p);
     }
 
     public void initFabAddLocation(){
@@ -561,9 +563,12 @@ public class MainActivity extends AppCompatActivity {
         //get current time in millis
         long endTime = Calendar.getInstance().getTimeInMillis();
         DBViewModel.dismissPark(park, endTime);
+        DBViewModel.setParkAlarmTime(park, 0);
 
         //change current park marker to old park marker
         this.setPreviusCurrMarkersToOldMarkers();
+        //removes alarmsin case is present
+        alarmUtility.removeAlarm(park);
     }
 
     /*
