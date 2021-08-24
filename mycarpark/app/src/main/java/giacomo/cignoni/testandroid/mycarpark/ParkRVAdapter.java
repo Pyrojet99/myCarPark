@@ -73,8 +73,8 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 }
 
                 //sets end and start time
-                textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm")
-                        + " - " + MainActivity.getDate(p.getEndTime(), "dd/MM/yyyy HH:mm"));
+                textTime.setText(MainActivity.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm")
+                        + " - " + MainActivity.getDateFromMillis(p.getEndTime(), "dd/MM/yyyy HH:mm"));
 
             }
 
@@ -106,7 +106,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 switch (v.getId()) {
                     case R.id.cardview_park: {
                         //adds marker when tapping on old park card
-                        mainActivity.addOldParkMarker(this.park);
+                        mainActivity.getMapUtility().addOldParkMarker(this.park);
                         break;
                     }
                     case R.id.button_more_park: {
@@ -142,15 +142,15 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         public void bind(Park p) {
            super.bind(p);
            if (super.park.getEndTime() == 0) {
-               super.textTime.setText(MainActivity.getDate(p.getStartTime(), "dd/MM/yyyy HH:mm"));
+               super.textTime.setText(MainActivity.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"));
                //adds marker on map
-               super.mainActivity.addCurrParkMarker(p);
+               super.mainActivity.getMapUtility().addCurrParkMarker(p);
            }
 
            Log.d("mytag", "bind currPark: isSwitcherShowingButton "+ isSwitcherShowingButton);
            if (p.getAlarmTime() != 0) {
                //if alarm time has been set
-               chipAlarm.setText(MainActivity.getDate(p.getAlarmTime(), "HH:mm dd/MM"));
+               chipAlarm.setText(MainActivity.getDateFromMillis(p.getAlarmTime(), "HH:mm dd/MM"));
                if (isSwitcherShowingButton) {
                    //flip the switcher to show the chip
                    viewSwitcherAlarm.showNext();
@@ -177,7 +177,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.cardview_park: {
-                    super.mainActivity.centerCameraOnMarker(super.park.getParkId());
+                    super.mainActivity.getMapUtility().centerCameraOnMarker(super.park.getParkId());
                     break;
                 }
                 case R.id.button_dismiss_park: {

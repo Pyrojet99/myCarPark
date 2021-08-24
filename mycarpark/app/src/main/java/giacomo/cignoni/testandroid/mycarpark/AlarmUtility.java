@@ -2,7 +2,6 @@ package giacomo.cignoni.testandroid.mycarpark;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -12,15 +11,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
-import android.view.View;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
-import android.widget.ViewSwitcher;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
-import com.google.android.material.chip.Chip;
 
 import java.util.Calendar;
 /*
@@ -31,6 +26,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     private static String NOTIFICATION_CHANNEL_ID = "mycarpark_notification_channel";
     private static String NOTIFICATION_EXTRA_TEXT = "notification_extra_text";
     private static String NOTIFICATION_EXTRA_ID = "notification_extra_id";
+    private long FIVE_MIN_IN_MILLIS = 300000;
 
 
     private MainActivity mainActivity;
@@ -42,6 +38,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     private int selectedYear;
     private TimePickerDialog timePickerDialog;
     private DatePickerDialog datePickerDialog;
+
 
     public AlarmUtility(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -69,11 +66,14 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     public void showDialog(Park p) {
         this.currentPark = p;
 
+        //initializes datepicker
         Calendar c = Calendar.getInstance();
         int initialYear = c.get(Calendar.YEAR);
         int initialMonth = c.get(Calendar.MONTH);
         int initialDay = c.get(Calendar.DAY_OF_MONTH);
         datePickerDialog.updateDate(initialYear, initialMonth, initialDay);
+        //sets min date as park start time
+        datePickerDialog.getDatePicker().setMinDate(p.getStartTime());
         datePickerDialog.show();
     }
 
@@ -95,7 +95,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     @Override
     public void onTimeSet(TimePicker view, int hour, int minute) {
         //calculate selected date in millis
-        long timeInMillis = this.dateToMillis(selectedYear, selectedMonth, selectedDay, hour, minute);
+        long timeInMillis = MainActivity.dateToMillis(selectedYear, selectedMonth, selectedDay, hour, minute);
         //insert alarm time into DB
         mainActivity.getDBViewModel().setParkAlarmTime(currentPark, timeInMillis);
 
@@ -103,15 +103,15 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
         //sets alarm
         PendingIntent pendingIntent = generatePendingIntent(timeInMillis);
         AlarmManager alarmManager = (AlarmManager) mainActivity.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis - FIVE_MIN_IN_MILLIS, pendingIntent);
     }
 
     /*
-     Creates PendingIntent
+    Creates PendingIntent
      */
     private PendingIntent generatePendingIntent(long timeInMillis) {
         String notificationText = "Park for car "+mainActivity.getDBViewModel().getCurrentCar().getName()+
-                " is expiring at "+MainActivity.getDate(timeInMillis, "HH:mm");
+                " is expiring at "+MainActivity.getDateFromMillis(timeInMillis, "HH:mm");
         Intent intent = new Intent(mainActivity, AlarmReceiver.class);
         intent.putExtra(NOTIFICATION_EXTRA_TEXT, notificationText);
         intent.putExtra(NOTIFICATION_CHANNEL_ID, (int) currentPark.getParkId());
@@ -119,7 +119,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     }
 
      /*
-    Removes alarm form database and the PendingIntent set with AlarmManager
+     Removes alarm from database and the PendingIntent set with AlarmManager
      */
     public void removeAlarm(Park p) {
         this.currentPark = p;
@@ -134,16 +134,9 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     }
 
     /*
-    Transforms int for year, month, day, hour and minute in millis from epoch
+    Receiver for park alarm
      */
-    public static long dateToMillis(int year, int month, int day, int hour, int minute) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month, day, hour, minute);
-        return calendar.getTimeInMillis();
-    }
-
     public static class AlarmReceiver extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("mytag", "onReceive: received alarm, ready to notify");

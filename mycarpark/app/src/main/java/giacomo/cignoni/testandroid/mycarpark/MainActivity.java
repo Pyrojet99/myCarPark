@@ -1,18 +1,14 @@
 package giacomo.cignoni.testandroid.mycarpark;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -30,17 +26,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -48,11 +35,8 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    static float DEFAULT_MAP_ZOOM = 17f;
 
     private CoordinatorLayout coordinatorLayout;
     private BottomSheetBehavior bottomSheetBehavior;
@@ -62,27 +46,20 @@ public class MainActivity extends AppCompatActivity {
     private CardView cardTopBar;
     private ImageButton topExpandArrow;
 
-    // register the permissions callback
-    private ActivityResultLauncher<String> requestPermissionLauncher;
+
 
     private LocationUtility locationUtility;
     private AlarmUtility alarmUtility;
+    private MapUtility mapUtility;
 
 
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
-    private DBViewModel DBViewModel;
+    private dbViewModel dbViewModel;
 
-    private GoogleMap map;
-    //map with <parkId, MarkerOptions> couples, used for deleting or modifying markers.
-    //Item is present in markersMap => item is present in markerOptionsMap in viewModel,
-    //but the opposite is not always true.
-    private Map<Long, Marker> markersMap;
 
-    private Bitmap bitmapCurrentMarker;
-    private Bitmap bitmapOldMarker;
 
 
     @Override
@@ -90,33 +67,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //initializes requestPermissionLauncher with callback
-        requestPermissionLauncher = this.registerForActivityResult(new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                            if (isGranted) {
-                                // permission is granted
-                                Log.d("mytag", "addNewLocation:  permission granted after dialog");
-                                //start again addMapCurrPosition
-                                addMapCurrPosition();
-
-                            } else {
-                                // Explain to the user that the feature is unavailable
-                                Toast.makeText(this.getApplicationContext(), "location permession not granted after dialog", Toast.LENGTH_SHORT).show();
-
-                            }
-                });
-
-        //generates bitmaps for map markers
-        bitmapCurrentMarker = generateBitmapFromVector(R.drawable.ic_car_current_24_vect);
-        bitmapOldMarker = generateBitmapFromVector(R.drawable.ic_car_old_24_vect);
-
         //base coordinator layout
         coordinatorLayout = findViewById(R.id.coordinator_layout_base);
 
+        //initializes locationUtility
         locationUtility = new LocationUtility(this);
 
         //initializes alarmUtility
         alarmUtility = new AlarmUtility(this);
+
+        //initializes mapUtility
+        mapUtility = new MapUtility(this);
 
         //init bottom sheet
         initBottomSheet();
@@ -128,9 +89,9 @@ public class MainActivity extends AppCompatActivity {
         initTopBar();
 
         //init viewModel
-        DBViewModel = new ViewModelProvider(this).get(DBViewModel.class);
+        dbViewModel = new ViewModelProvider(this).get(dbViewModel.class);
 
-        DBViewModel.getAllCars().observe(this, cars -> {
+        dbViewModel.getAllCars().observe(this, cars -> {
             // Update the cached copy of the cars in the adapter
             carAdapter.submitList(cars);
         });
@@ -140,54 +101,45 @@ public class MainActivity extends AppCompatActivity {
 
         Car currentCar;
         //field currentCar has been preserved in the viewModel
-        if ((currentCar = DBViewModel.getCurrentCar()) != null) {
+        if ((currentCar = dbViewModel.getCurrentCar()) != null) {
             // Update top textview with car name
             textViewCurrCar.setText(currentCar.getName());
             //initialize parks for current car
-            DBViewModel.updateParksByCurrentCarId(currentCar.getCarId());
+            dbViewModel.updateParksByCurrentCarId(currentCar.getCarId());
             //init parks observer
-            DBViewModel.getCurrentCarParks().observe(ma, parks -> {
+            dbViewModel.getCurrentCarParks().observe(ma, parks -> {
                 // Update the cached copy of the parks in the adapter
                 parkAdapter.submitList(parks);
-
-                /*//sets collapsed height of bottom sheet as first RV element height
-                this.bottomSheetBehavior.setPeekHeight(
-                        rvPark.getLayoutManager().findViewByPosition(0).getHeight());
-
-                 */
             });
         }
 
         //get current car from DB
-        else if (DBViewModel.getLiveInitialCurrentCar() != null) {
+        else if (dbViewModel.getLiveInitialCurrentCar() != null) {
             //starting currCar observer
-            DBViewModel.getLiveInitialCurrentCar().observe(ma, car -> {
+            dbViewModel.getLiveInitialCurrentCar().observe(ma, car -> {
                 if (car != null) {
                     //initializes currentCar in viewModel
-                    DBViewModel.setCurrentCar(car);
+                    dbViewModel.setCurrentCar(car);
                     // Update top textview with car name
                     textViewCurrCar.setText(car.getName());
                     //initialize parks for current car
-                    DBViewModel.updateParksByCurrentCarId(car.getCarId());
+                    dbViewModel.updateParksByCurrentCarId(car.getCarId());
                     //init parks observer
-                    DBViewModel.getCurrentCarParks().observe(ma, parks -> {
+                    dbViewModel.getCurrentCarParks().observe(ma, parks -> {
                         // Update the cached copy of the parks in the adapter
                         parkAdapter.submitList(parks);
                     });
 
                     //remove observers for LiveData of initialCurrentCar
-                    DBViewModel.getLiveInitialCurrentCar().removeObservers(ma);
-                    //DBViewModel.resetInitialCurrentCar();
+                    dbViewModel.getLiveInitialCurrentCar().removeObservers(ma);
                 }
             });
         }
 
-
-
         //init new location button
         initFabAddLocation();
 
-        initMap();
+        mapUtility.restoreMarkers();
     }
 
     public void switchCar(Car newSelectedCar) {
@@ -195,25 +147,25 @@ public class MainActivity extends AppCompatActivity {
         textViewCurrCar.setText(newSelectedCar.getName());
 
         //remove observers from oldparks liveData
-        DBViewModel.getCurrentCarParks().removeObservers(this);
+        dbViewModel.getCurrentCarParks().removeObservers(this);
         //updates parks liveData with parks for new current car
-        DBViewModel.updateParksByCurrentCarId(newSelectedCar.getCarId());
+        dbViewModel.updateParksByCurrentCarId(newSelectedCar.getCarId());
         //set observer for new parks livedata
-        DBViewModel.getCurrentCarParks().observe(this, parks -> {
+        dbViewModel.getCurrentCarParks().observe(this, parks -> {
             // Update the cached copy of the parks in the adapter
             parkAdapter.submitList(parks);
         });
 
         //set isCurrent as true for newly selected car
-        DBViewModel.updateIsCurrentCar(newSelectedCar.getCarId(), true);
+        dbViewModel.updateIsCurrentCar(newSelectedCar.getCarId(), true);
         //set previous curr car isCurrent as false
-        DBViewModel.updateIsCurrentCar(DBViewModel.getCurrentCar().getCarId(), false);
+        dbViewModel.updateIsCurrentCar(dbViewModel.getCurrentCar().getCarId(), false);
 
         //sets currentCar in viewModel as the selected car
-        DBViewModel.setCurrentCar(newSelectedCar);
+        dbViewModel.setCurrentCar(newSelectedCar);
 
         //resets map markers
-        this.removeAllMarkers();
+        mapUtility.removeAllMarkers();
 
         //closes top bar
         this.toggleExpandTopBar();
@@ -225,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         if (!carName.trim().equals("")) {
             //new car set as current
             Car c = new Car(carName, false);
-            DBViewModel.insertCar(c);
+            dbViewModel.insertCar(c);
 
         } else {
             //TODO: make toast or other
@@ -296,86 +248,51 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void initMap() {
-        //init markers map
-        markersMap = new HashMap<>();
-
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_main);
-        mapFragment.getMapAsync(googleMap -> {
-            this.map = googleMap;
-
-
-            // set map type
-            googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-            //disable zoom controls
-            googleMap.getUiSettings().setZoomControlsEnabled(false);
-            //sets top padding for map controls
-            googleMap.setPadding(0, 256, 0, 0);
-
-            this.addMapCurrPosition();
-
-            //sets longonclick listener to add new current park on long press
-            googleMap.setOnMapLongClickListener(latLng -> {
-                locationUtility.reverseGeocode(latLng.latitude, latLng.longitude);
-            });
-
-            googleMap.getUiSettings().setMapToolbarEnabled(true);
-
-
-            //restores all markers previously preserved in the viewModel
-            for (Map.Entry<Long, MarkerOptions> entry : DBViewModel.getMarkerOptionsMap().entrySet()) {
-                //restore marker to map if not already restored (if restored the corresponding value
-                //of the entry in the Marker objects map is not null)
-                if (this.markersMap.get(entry.getKey()) == null) {
-                    this.addParkMarker(entry.getValue(), entry.getKey());
-                }
-            }
-        });
-    }
-
-    /*
-    Checks location permissions to add current location to map
-     */
-    public void addMapCurrPosition() {
-        //checks and requests location permissions
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("mytag", "addNewLocation: no permission location");
-            requestPermissionLauncher.launch(
-                    Manifest.permission.ACCESS_FINE_LOCATION);
-            return;
-        }
-        this.map.setMyLocationEnabled(true);
-    }
-
-    public DBViewModel getDBViewModel(){
-        return DBViewModel;
+    public dbViewModel getDBViewModel(){
+        return dbViewModel;
     }
 
     public AlarmUtility getAlarmUtility() {
         return this.alarmUtility;
     }
 
-    public long getCurrentCarId() {
-        //return currentCarId;
-        return DBViewModel.getCurrentCar().getCarId();
+    public LocationUtility getLocationUtility() {
+        return this.locationUtility;
     }
 
+    public MapUtility getMapUtility() {
+        return this.mapUtility;
+    }
+
+
+    /*
+    Return currentCarId;
+     */
+    public long getCurrentCarId() {
+        return dbViewModel.getCurrentCar().getCarId();
+    }
+
+    /*
+    Get a new location, if successful insert into DB
+     */
     public void addNewLocation() {
         Log.d("mytag", "addNewLocation: cliccato ");
         locationUtility.setCurrentLocation();
     }
 
+    /*
+    Create and insert new park in the database
+     */
     public void insertPark(ParkAddress addr) {
         //get current time in millis
         long currentTime = Calendar.getInstance().getTimeInMillis();
         //updates current markers present on map to old markers
-        this.setPreviusCurrMarkersToOldMarkers();
+        mapUtility.setPreviusCurrMarkersToOldMarkers();
 
         //create new park
         Park p = new Park(addr, this.getCurrentCarId(), currentTime);
         //insert in database
-        DBViewModel.insertPark(p);
+        dbViewModel.insertPark(p);
 
         //haptic feedback of confirmation
         this.fabAddLocation.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
@@ -385,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
     Deletes park from DB and its marker on the map if present
      */
     public void deletePark(Park p) {
-        DBViewModel.deletePark(p);
-        removeMarker(p.getParkId());
+        dbViewModel.deletePark(p);
+        mapUtility.removeMarker(p.getParkId());
         alarmUtility.removeAlarm(p);
     }
 
@@ -427,146 +344,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-    Generates MarkerOptions for current park, adds it to markerOptionsMap and calls addParkMarker method
-     */
-    public void addCurrParkMarker(Park park) {
-        if(markersMap.get(park.getParkId()) == null) {
-            //create MarkerOptions
-            LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
-            MarkerOptions m = new MarkerOptions()
-                    .position(position);
-            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapCurrentMarker);
-            m.icon(icon);
-            //adds MarkerOptions to map data structure to preserve it
-            DBViewModel.putMarkerOptions(park.getParkId(), m);
-            //adds isCurrent info to map
-            DBViewModel.putMarkerIsCurr(park.getParkId(), Boolean.TRUE);
-
-            addParkMarker(m, park.getParkId());
-        }
-    }
-
-    /*
-    Generates MarkerOptions for old park, adds it to markerOptionsMap and calls addParkMarker method
-    */
-    public void addOldParkMarker(Park park) {
-        if(markersMap.get(park.getParkId()) == null) {
-            //create MarkerOptions
-            LatLng position = new LatLng(park.getAddress().getLatitude(), park.getAddress().getLongitude());
-            MarkerOptions m = new MarkerOptions()
-                    .position(position);
-            BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapOldMarker);
-            m.icon(icon);
-            //adds MarkerOptions to map data structure to preserve it
-            DBViewModel.putMarkerOptions(park.getParkId(), m);
-            //adds isCurrentMarker info to map
-            DBViewModel.putMarkerIsCurr(park.getParkId(), Boolean.FALSE);
-
-            addParkMarker(m, park.getParkId());
-        }
-        else {
-            //if new marker is not created, focus on existing marker
-            centerCameraOnMarker(park.getParkId());
-        }
-    }
-
-    /*
-    Add marker to GoogleMap from MarkerOptions and generated Marker Object to markersMap data structure.
-    Called both for current and old park markers
-     */
-    public void addParkMarker(MarkerOptions m, long parkId) {
-        Marker marker;
-        //adds marker to GoogleMap if already loaded
-        if (this.map != null){
-            marker = this.map.addMarker(m);
-
-            //adds marker to Map for later deletion or modification
-            this.markersMap.put(parkId, marker);
-        }
-
-        //map camera animation on marker focus on marker
-       this.centerCameraOnMarker(parkId);
-
-    }
-
-    /*
-    Centers map camera on marker corresponding to a parkId if present on the map
-     */
-    public void centerCameraOnMarker(long parkId) {
-        Marker marker;
-        if ((marker = this.markersMap.get(parkId)) != null) {
-            this.map.moveCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), DEFAULT_MAP_ZOOM));
-
-            //closes bottomSheet to show map
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }
-    }
-
-    /*
-   Returns if a marker refers to a current park, based on the value of a map in the viewModel
-    */
-    public boolean isCurrentParkMarker(long parkId) {
-        if (DBViewModel.getMarkerIsCurr(parkId)) return true;
-        else return false;
-    }
-
-    /*
-   Updates all current park markers to old park markers.
-    */
-    public void setPreviusCurrMarkersToOldMarkers() {
-        for(Map.Entry<Long, Marker> entry : markersMap.entrySet()) {
-            if (isCurrentParkMarker(entry.getKey())) {
-                //updates value in isCurrentMarker map of viewModel to false
-                DBViewModel.putMarkerIsCurr(entry.getKey(), false);
-                //update markerOptions
-                MarkerOptions m = DBViewModel.getMarkerOptions(entry.getKey());
-                BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(this.bitmapOldMarker);
-                m.icon(icon);
-                //adds MarkerOptions to map data structure to preserve it
-                DBViewModel.putMarkerOptions(entry.getKey(), m);
-                //updates Marker
-                entry.getValue().setIcon(icon);
-            }
-        }
-    }
-
-    /*
-    Remove all markers from the GoogleMap and the maps used to keep track of markers
-     */
-    public void removeAllMarkers() {
-        for(Marker m : this.markersMap.values()) {
-            m.remove();
-            Log.d("mytag", "removeAllMarkers: marker with tag: "+m.getTag());
-        }
-        //reset Markers, MarkerOptions and isCurrentMarker maps
-        markersMap.clear();
-        DBViewModel.resetMarkerOptionsMap();
-        DBViewModel.resetMarkerIsCurrMap();
-    }
-
-    /*
-    Remove the marker associated to a single park from GoogleMap and data structures
-     */
-    public void removeMarker(long parkId) {
-        Marker marker;
-        if((marker = this.markersMap.get(parkId)) != null) marker.remove();
-        //remove values with parkId key from Markers, MarkerOptions and isCurrentMarker maps
-        this.markersMap.remove(parkId);
-        DBViewModel.removeMarkerOptions(parkId);
-        DBViewModel.removeMarkerIsCurr(parkId);
-    }
-
-    /*
     Set endtime for current park, so it becomes an old park
      */
     public void dismissPark(Park park){
         //get current time in millis
         long endTime = Calendar.getInstance().getTimeInMillis();
-        DBViewModel.dismissPark(park, endTime);
-        DBViewModel.setParkAlarmTime(park, 0);
+        dbViewModel.dismissPark(park, endTime);
+        dbViewModel.setParkAlarmTime(park, 0);
 
         //change current park marker to old park marker
-        this.setPreviusCurrMarkersToOldMarkers();
+        mapUtility.setPreviusCurrMarkersToOldMarkers();
         //removes alarmsin case is present
         alarmUtility.removeAlarm(park);
     }
@@ -574,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
     /*
     Returns string representing date in the format passed as an argument of millis from epoch
      */
-    public static String getDate(long milliSeconds, String dateFormat) {
+    public static String getDateFromMillis(long milliSeconds, String dateFormat) {
         // Create a DateFormatter object for displaying date in specified format
         SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
 
@@ -585,11 +372,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
+    Transforms int for year, month, day, hour and minute in millis from epoch
+     */
+    public static long dateToMillis(int year, int month, int day, int hour, int minute) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day, hour, minute);
+        return calendar.getTimeInMillis();
+    }
+
+    /*
     Generates bitmap from resource id of drawable vector.
     From https://stackoverflow.com/questions/33696488/getting-bitmap-from-vector-drawable
      */
-    public Bitmap generateBitmapFromVector(int resourceId) {
-        Drawable drawable = getDrawable(resourceId);
+    public static Bitmap generateBitmapFromVector(Context context, int resourceId) {
+        Drawable drawable = AppCompatResources.getDrawable(context, resourceId);
         Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
