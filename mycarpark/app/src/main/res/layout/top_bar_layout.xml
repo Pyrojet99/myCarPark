@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="testtttt"
+                    android:text="@string/top_bar_selector_default"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/button_expand_arrow"
                     app:layout_constraintStart_toStartOf="parent"

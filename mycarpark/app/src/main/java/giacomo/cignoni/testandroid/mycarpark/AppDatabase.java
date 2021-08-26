@@ -11,10 +11,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Park.class, Car.class}, version = 1, exportSchema = false)
+@Database(entities = {Park.class, Car.class, CurrCarId.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ParkDao parkDao();
     public abstract CarDao carDao();
+    public abstract CurrCarIdDao currCarIdDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
@@ -25,20 +26,10 @@ public abstract class AppDatabase extends RoomDatabase {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
-
-            // If you want to keep data through app restarts,
-            // comment out the following block
             databaseWriteExecutor.execute(() -> {
-                // Populate the database in the background.
-                // If you want to start with more items, just add them.
-                CarDao cardao = INSTANCE.carDao();
-
-                Car c1 = new Car("TestCar1", false);
-                cardao.insert(c1);
-                Car c2 = new Car("TestCar2", false);
-                cardao.insert(c2);
-                Car c3 = new Car("TestCar3", true);
-                cardao.insert(c3);
+               //initialize DB with currCarId initial value
+                CurrCarIdDao currCarIdDao = INSTANCE.currCarIdDao();
+                currCarIdDao.insert(new CurrCarId(0));
 
             });
         }

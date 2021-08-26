@@ -26,6 +26,8 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     private static String NOTIFICATION_CHANNEL_ID = "mycarpark_notification_channel";
     private static String NOTIFICATION_EXTRA_TEXT = "notification_extra_text";
     private static String NOTIFICATION_EXTRA_ID = "notification_extra_id";
+    private static String NOTIFICATION_EXTRA_CAR_ID = "notification_extra_car_id";
+
     private long FIVE_MIN_IN_MILLIS = 300000;
 
 
@@ -115,6 +117,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
         Intent intent = new Intent(mainActivity, AlarmReceiver.class);
         intent.putExtra(NOTIFICATION_EXTRA_TEXT, notificationText);
         intent.putExtra(NOTIFICATION_CHANNEL_ID, (int) currentPark.getParkId());
+        intent.putExtra(NOTIFICATION_EXTRA_CAR_ID, currentPark.getParkedCarId());
         return PendingIntent.getBroadcast(mainActivity, (int) currentPark.getParkId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
@@ -141,15 +144,28 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
         public void onReceive(Context context, Intent intent) {
             Log.d("mytag", "onReceive: received alarm, ready to notify");
 
+
+            //create an explicit intent to launch mainActivity with parked car id as extra
+            Intent onTapIntent = new Intent(context, MainActivity.class);
+            onTapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            onTapIntent.putExtra(context.getString(R.string.start_car_extra_intent),
+                    intent.getLongExtra(NOTIFICATION_EXTRA_CAR_ID, 0));
+
+            PendingIntent onTapPendingIntent = PendingIntent.getActivity(context, 0, onTapIntent, 0);
+
+
+            //builds notification
             NotificationCompat.Builder notificationBuilder =
                     new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                             .setContentTitle("park expired")
                             .setContentText(intent.getStringExtra(NOTIFICATION_EXTRA_TEXT))
-                            .setSmallIcon(R.drawable.ic_notification_car_24);
+                            .setSmallIcon(R.drawable.ic_notification_car_24)
+                            .setAutoCancel(true)
+                            .setContentIntent(onTapPendingIntent);
+
+
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-
-            // notificationId is a unique int for each notification that you must define
             notificationManager.notify(intent.getIntExtra(NOTIFICATION_EXTRA_ID,0),
                     notificationBuilder.build());
         }

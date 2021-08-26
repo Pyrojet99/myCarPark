@@ -9,11 +9,9 @@ public class Car {
     @PrimaryKey(autoGenerate = true)
     private long carId;
     private String name;
-    private boolean isCurrent;
 
-    public Car(String name, boolean isCurrent){
+    public Car(String name){
         this.name = name;
-        this.isCurrent = isCurrent;
     }
 
     public long getCarId() {
@@ -24,10 +22,6 @@ public class Car {
         return name;
     }
 
-    public boolean getIsCurrent() {
-        return isCurrent;
-    }
-
     public void setCarId(long carId) {
         this.carId = carId;
     }
@@ -36,7 +30,5 @@ public class Car {
         this.name = name;
     }
 
-    public void setIsCurrent(boolean current) {
-        isCurrent = current;
-    }
+
 }

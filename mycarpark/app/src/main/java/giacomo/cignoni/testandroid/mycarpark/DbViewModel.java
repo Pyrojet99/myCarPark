@@ -6,47 +6,71 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import java.util.List;
 
-public class dbViewModel extends AndroidViewModel {
+public class DbViewModel extends AndroidViewModel {
 
-    private LiveData<List<Park>> liveParkList;
+    //current car kept while the app is running and used for all operations
+    //does not necessarily represent current car in database
+    private Car currentCar;
 
-    private LiveData<List<Car>> liveCarList;
+    //LiveData used ONLY at app start to get current car ID from DB
+    private LiveData<CurrCarId> liveInitialCurrCarId;
     //LiveData used ONLY at app start to get the current car from DB
     private LiveData<Car> liveInitialCurrentCar;
-    //current car kept while the app is running and used for all other operations
-    private Car currentCar;
+
+    //list of all the cars which are not the current car
+    private LiveData<List<Car>> liveNonCurrCarList;
+
+    //list of parks for the current park
+    private LiveData<List<Park>> liveParkList;
 
     private CarDao carDao;
     private ParkDao parkDao;
+    private CurrCarIdDao currCarIdDao;
 
 
-    public dbViewModel(Application application) {
+    public DbViewModel(Application application) {
         super(application);
         AppDatabase db = AppDatabase.getDatabase(application);
         //get DAOs
         parkDao = db.parkDao();
         carDao = db.carDao();
-        //initialize liveData data structures
-        liveCarList = carDao.getAll();
-        liveInitialCurrentCar = carDao.getCurrent();
+        currCarIdDao = db.currCarIdDao();
+    }
 
-        Car currCar = liveInitialCurrentCar.getValue();
-        if(currCar != null) {
-            liveParkList = parkDao.getAllByCarId(currCar.getCarId());
-        }
+
+    public LiveData<CurrCarId> getInitialCurrCarId() {
+        return liveInitialCurrCarId;
+    }
+
+    public void setInitialCurrCarId() {
+        liveInitialCurrCarId = currCarIdDao.getCurrCarId();
     }
 
     /*
-    Getter for liveCarList
+    Getter for liveNonCurrCarList
      */
-    LiveData<List<Car>> getAllCars() {
-        return liveCarList;
+    public LiveData<List<Car>> getNonCurrCarList() {
+        return liveNonCurrCarList;
+    }
+
+    /*
+    Set the car list to be all the cars from DB except the one with the id specified as param
+     */
+    public void setNonCurrCarList(long carIdToExclude) {
+        liveNonCurrCarList = carDao.getAllExcept(carIdToExclude);
+    }
+
+    /*
+    Set liveInitialCurrentCar to be the car from DB with the id specified as param
+     */
+    public void setInitialCurrentCar(long carId) {
+        liveInitialCurrentCar = carDao.findById(carId);
     }
 
     /*
     Getter for liveInitialCurrentCar
      */
-    LiveData<Car> getLiveInitialCurrentCar() {
+    public LiveData<Car> getInitialCurrentCar() {
         return liveInitialCurrentCar;
     }
 
@@ -62,23 +86,24 @@ public class dbViewModel extends AndroidViewModel {
     /*
     Update isCurrent field in Car with specified boolean value
      */
-    public void updateIsCurrentCar(long carId, boolean isCurrent) {
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                carDao.updateIsCurrent(carId, isCurrent)
-        );
+    public void updateCurrentCarId(long carId) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            currCarIdDao.deleteAll();
+            currCarIdDao.insert(new CurrCarId(carId));
+        });
     }
 
     /*
     Update liveParkList with parks from new car
      */
-    public void updateParksByCurrentCarId(long newCarId){
+    public void updateParkListByCurrentCarId(long newCarId){
         liveParkList = parkDao.getAllByCarId(newCarId);
     }
 
     /*
     Getter for liveParkList
      */
-    public LiveData<List<Park>> getCurrentCarParks() {
+    public LiveData<List<Park>> getParkList() {
         return liveParkList;
     }
 

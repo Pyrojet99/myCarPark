@@ -92,7 +92,10 @@ public class MapUtility {
 
             //sets longonclick listener to add new current park on long press
             googleMap.setOnMapLongClickListener(latLng -> {
-                mainActivity.getLocationUtility().reverseGeocode(latLng.latitude, latLng.longitude);
+                //if the possibility to add new parks is enabled
+                if (mainActivity.getNewParkEnabled()) {
+                    mainActivity.getLocationUtility().reverseGeocode(latLng.latitude, latLng.longitude);
+                }
             });
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);

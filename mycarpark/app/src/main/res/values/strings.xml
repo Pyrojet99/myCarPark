@@ -1,6 +1,11 @@
 <resources>
+    <!--Identifiers -->
+    <string name="start_car_extra_intent">intent_id_start_car</string>
+
+    <!--Other strings -->
     <string name="app_name">MyCarPark</string>
     <string name="notification_channel_name">MyCarPark Notifications</string>
     <string name="notification_title">Park is expiring</string>
     <string name="time_picker_text">Select parking expire time</string>
+    <string name="top_bar_selector_default">Tap to add or select car</string>
 </resources>

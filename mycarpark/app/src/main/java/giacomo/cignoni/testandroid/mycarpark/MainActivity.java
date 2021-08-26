@@ -46,26 +46,25 @@ public class MainActivity extends AppCompatActivity {
     private CardView cardTopBar;
     private ImageButton topExpandArrow;
 
-
-
     private LocationUtility locationUtility;
     private AlarmUtility alarmUtility;
     private MapUtility mapUtility;
-
 
     private RecyclerView rvPark;
     private ParkRVAdapter parkAdapter;
     private RecyclerView rvCar;
     private CarRVAdapter carAdapter;
-    private dbViewModel dbViewModel;
+    private DbViewModel dbViewModel;
 
-
+    private boolean newParkEnabled;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        long carIdFromIntent = getIntent().getLongExtra(getString(R.string.start_car_extra_intent), 0);
+
 
         //base coordinator layout
         coordinatorLayout = findViewById(R.id.coordinator_layout_base);
@@ -88,50 +87,92 @@ public class MainActivity extends AppCompatActivity {
         //init top bar
         initTopBar();
 
-        //init viewModel
-        dbViewModel = new ViewModelProvider(this).get(dbViewModel.class);
 
-        dbViewModel.getAllCars().observe(this, cars -> {
-            // Update the cached copy of the cars in the adapter
-            carAdapter.submitList(cars);
-        });
-
-
-        MainActivity ma = this;
-
+        final MainActivity ma = this;
         Car currentCar;
-        //field currentCar has been preserved in the viewModel
-        if ((currentCar = dbViewModel.getCurrentCar()) != null) {
-            // Update top textview with car name
-            textViewCurrCar.setText(currentCar.getName());
-            //initialize parks for current car
-            dbViewModel.updateParksByCurrentCarId(currentCar.getCarId());
-            //init parks observer
-            dbViewModel.getCurrentCarParks().observe(ma, parks -> {
-                // Update the cached copy of the parks in the adapter
-                parkAdapter.submitList(parks);
-            });
-        }
 
-        //get current car from DB
-        else if (dbViewModel.getLiveInitialCurrentCar() != null) {
-            //starting currCar observer
-            dbViewModel.getLiveInitialCurrentCar().observe(ma, car -> {
+        //init viewModel
+        dbViewModel = new ViewModelProvider(this).get(DbViewModel.class);
+
+        //use last used current car, no car id in starting intent
+        if (carIdFromIntent == 0) {
+
+            //field currentCar has been preserved in the viewModel
+            if ((currentCar = dbViewModel.getCurrentCar()) != null) {
+                // Update top textview with car name
+                textViewCurrCar.setText(currentCar.getName());
+                //initialize parks for current car
+                dbViewModel.updateParkListByCurrentCarId(currentCar.getCarId());
+                //init parks observer
+                ma.observeParks();
+
+                //exclude current car from car list
+                dbViewModel.setNonCurrCarList(currentCar.getCarId());
+                //sets observer for non current cars
+                observeNonCurrCars();
+
+
+            }
+            //get current car from DB
+            else {
+                dbViewModel.setInitialCurrCarId();
+                dbViewModel.getInitialCurrCarId().observe(ma, id -> {
+                    if (id != null) {
+                        if(id.getCarId() == 0) {
+                            //initial state of DB, no curr car
+                            disableNewParksInsertion();
+                        }
+                        //remove observers for LiveData of initialCurrCarId
+                        dbViewModel.getInitialCurrCarId().removeObservers(ma);
+
+                        //exclude current car from car list
+                        dbViewModel.setNonCurrCarList(id.getCarId());
+                        //sets observer for non current cars
+                        observeNonCurrCars();
+
+                        //initialize and set observer for LiveData of initialCurrentCar with id
+                        dbViewModel.setInitialCurrentCar(id.getCarId());
+                        dbViewModel.getInitialCurrentCar().observe(ma, car -> {
+                            if (car != null) {
+                                //initializes currentCar in viewModel
+                                dbViewModel.setCurrentCar(car);
+                                // Update top textview with car name
+                                textViewCurrCar.setText(car.getName());
+                                //initialize parks for current car
+                                dbViewModel.updateParkListByCurrentCarId(car.getCarId());
+                                //init parks observer
+                                ma.observeParks();
+
+                                //remove observers for LiveData of initialCurrentCar
+                                dbViewModel.getInitialCurrentCar().removeObservers(ma);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        //get initial car id from intent
+        else {
+            //exclude current car from car list
+            dbViewModel.setNonCurrCarList(carIdFromIntent);
+            //sets observer for non current cars
+            observeNonCurrCars();
+
+            //initialize and set observer for LiveData of initialCurrentCar with id from intent
+            dbViewModel.setInitialCurrentCar(carIdFromIntent);
+            dbViewModel.getInitialCurrentCar().observe(ma, car -> {
                 if (car != null) {
                     //initializes currentCar in viewModel
                     dbViewModel.setCurrentCar(car);
                     // Update top textview with car name
                     textViewCurrCar.setText(car.getName());
                     //initialize parks for current car
-                    dbViewModel.updateParksByCurrentCarId(car.getCarId());
+                    dbViewModel.updateParkListByCurrentCarId(car.getCarId());
                     //init parks observer
-                    dbViewModel.getCurrentCarParks().observe(ma, parks -> {
-                        // Update the cached copy of the parks in the adapter
-                        parkAdapter.submitList(parks);
-                    });
+                    ma.observeParks();
 
                     //remove observers for LiveData of initialCurrentCar
-                    dbViewModel.getLiveInitialCurrentCar().removeObservers(ma);
+                    dbViewModel.getInitialCurrentCar().removeObservers(ma);
                 }
             });
         }
@@ -142,24 +183,52 @@ public class MainActivity extends AppCompatActivity {
         mapUtility.restoreMarkers();
     }
 
+    /*
+    Observes nonCurrCarList in the viewModel and submits changes to carAdapter
+     */
+    public void observeNonCurrCars() {
+        dbViewModel.getNonCurrCarList().observe(this, cars -> {
+            if (cars != null) {
+                //update the cached copy of the cars in the adapter
+                carAdapter.submitList(cars);
+            }
+        });
+    }
+
+    /*
+    Observes parkList in the viewModel and submits changes to parkAdapter
+     */
+    public void observeParks() {
+        dbViewModel.getParkList().observe(this, parks -> {
+            //update the cached copy of the parks in the adapter
+            parkAdapter.submitList(parks);
+        });
+    }
+
     public void switchCar(Car newSelectedCar) {
+        if(!newParkEnabled) enableNewParksInsertion();
+
         // Update top textview with car name
         textViewCurrCar.setText(newSelectedCar.getName());
 
-        //remove observers from oldparks liveData
-        dbViewModel.getCurrentCarParks().removeObservers(this);
-        //updates parks liveData with parks for new current car
-        dbViewModel.updateParksByCurrentCarId(newSelectedCar.getCarId());
-        //set observer for new parks livedata
-        dbViewModel.getCurrentCarParks().observe(this, parks -> {
-            // Update the cached copy of the parks in the adapter
-            parkAdapter.submitList(parks);
-        });
+        //update current car id in DB
+        dbViewModel.updateCurrentCarId(newSelectedCar.getCarId());
 
-        //set isCurrent as true for newly selected car
-        dbViewModel.updateIsCurrentCar(newSelectedCar.getCarId(), true);
-        //set previous curr car isCurrent as false
-        dbViewModel.updateIsCurrentCar(dbViewModel.getCurrentCar().getCarId(), false);
+        //remove previous cars observers
+        dbViewModel.getNonCurrCarList().removeObservers(this);
+        //updates live car list to exclude new current car
+        dbViewModel.setNonCurrCarList(newSelectedCar.getCarId());
+        observeNonCurrCars();
+
+        if(dbViewModel.getParkList() != null) {
+            //remove observers from oldparks liveData
+            dbViewModel.getParkList().removeObservers(this);
+        }
+        //updates parks liveData with parks for new current car
+        dbViewModel.updateParkListByCurrentCarId(newSelectedCar.getCarId());
+        //set observer for new parks livedata
+        observeParks();
+
 
         //sets currentCar in viewModel as the selected car
         dbViewModel.setCurrentCar(newSelectedCar);
@@ -171,12 +240,15 @@ public class MainActivity extends AppCompatActivity {
         this.toggleExpandTopBar();
     }
 
+    /*
+    Add new car
+     */
     public void addNewCar(EditText editAddCar) {
         String carName = editAddCar.getText().toString();
         Log.d("mytag", "new car: " + carName);
         if (!carName.trim().equals("")) {
             //new car set as current
-            Car c = new Car(carName, false);
+            Car c = new Car(carName);
             dbViewModel.insertCar(c);
 
         } else {
@@ -248,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public dbViewModel getDBViewModel(){
+    public DbViewModel getDBViewModel(){
         return dbViewModel;
     }
 
@@ -264,12 +336,26 @@ public class MainActivity extends AppCompatActivity {
         return this.mapUtility;
     }
 
+    public boolean getNewParkEnabled() {
+        return newParkEnabled;
+    }
+
 
     /*
     Return currentCarId;
      */
     public long getCurrentCarId() {
         return dbViewModel.getCurrentCar().getCarId();
+    }
+
+    public void disableNewParksInsertion() {
+        this.newParkEnabled = false;
+        fabAddLocation.setVisibility(View.GONE);
+    }
+
+    public void enableNewParksInsertion() {
+        this.newParkEnabled = true;
+        fabAddLocation.setVisibility(View.VISIBLE);
     }
 
     /*
