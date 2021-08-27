@@ -23,4 +23,7 @@ public interface CarDao {
 
     @Query("SELECT * FROM car WHERE carId = :queryId LIMIT 1")
     LiveData<Car> findById(Long queryId);
+
+    @Query("SELECT * FROM car WHERE carId = :queryId LIMIT 1")
+    Car findByIdNotLive(Long queryId);
 }

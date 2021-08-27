@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private CoordinatorLayout coordinatorLayout;
     private BottomSheetBehavior bottomSheetBehavior;
-    private FloatingActionButton fabAddLocation;
+    private ExtendedFloatingActionButton fabAddLocation;
     private TextView textViewCurrCar;
     private LinearLayout hiddenTopBar;
     private CardView cardTopBar;

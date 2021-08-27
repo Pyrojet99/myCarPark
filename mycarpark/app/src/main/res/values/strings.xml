@@ -6,6 +6,9 @@
     <string name="app_name">MyCarPark</string>
     <string name="notification_channel_name">MyCarPark Notifications</string>
     <string name="notification_title">Park is expiring</string>
+    <string name="boot_notification_title">Restoring...</string>
+    <string name="boot_notification_text">Restoring pending alarms for parks...</string>
     <string name="time_picker_text">Select parking expire time</string>
     <string name="top_bar_selector_default">Tap to add or select car</string>
+    <string name="fab_add_location_text">Parking\nLocation</string>
 </resources>

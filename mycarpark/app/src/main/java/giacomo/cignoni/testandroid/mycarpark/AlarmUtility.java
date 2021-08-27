@@ -23,12 +23,11 @@ Contains the methods which regulate the alarm for a specific park, including sho
 NOTE: all hour is expressed in 24h format
  */
 public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-    private static String NOTIFICATION_CHANNEL_ID = "mycarpark_notification_channel";
+    public static String NOTIFICATION_CHANNEL_ID = "mycarpark_notification_channel";
     private static String NOTIFICATION_EXTRA_TEXT = "notification_extra_text";
     private static String NOTIFICATION_EXTRA_ID = "notification_extra_id";
     private static String NOTIFICATION_EXTRA_CAR_ID = "notification_extra_car_id";
-
-    private long FIVE_MIN_IN_MILLIS = 300000;
+    public static long FIVE_MIN_IN_MILLIS = 300000;
 
 
     private MainActivity mainActivity;
@@ -103,7 +102,8 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
 
 
         //sets alarm
-        PendingIntent pendingIntent = generatePendingIntent(timeInMillis);
+        PendingIntent pendingIntent = generatePendingIntent(timeInMillis, mainActivity,
+                currentPark, mainActivity.getDBViewModel().getCurrentCar());
         AlarmManager alarmManager = (AlarmManager) mainActivity.getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis - FIVE_MIN_IN_MILLIS, pendingIntent);
     }
@@ -111,14 +111,14 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     /*
     Creates PendingIntent
      */
-    private PendingIntent generatePendingIntent(long timeInMillis) {
-        String notificationText = "Park for car "+mainActivity.getDBViewModel().getCurrentCar().getName()+
+    public static PendingIntent generatePendingIntent(long timeInMillis, Context context, Park p, Car c) {
+        String notificationText = "Park for car "+c.getName()+
                 " is expiring at "+MainActivity.getDateFromMillis(timeInMillis, "HH:mm");
-        Intent intent = new Intent(mainActivity, AlarmReceiver.class);
+        Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra(NOTIFICATION_EXTRA_TEXT, notificationText);
-        intent.putExtra(NOTIFICATION_CHANNEL_ID, (int) currentPark.getParkId());
-        intent.putExtra(NOTIFICATION_EXTRA_CAR_ID, currentPark.getParkedCarId());
-        return PendingIntent.getBroadcast(mainActivity, (int) currentPark.getParkId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        intent.putExtra(NOTIFICATION_CHANNEL_ID, (int) p.getParkId());
+        intent.putExtra(NOTIFICATION_EXTRA_CAR_ID, p.getParkedCarId());
+        return PendingIntent.getBroadcast(context, (int) p.getParkId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
      /*
@@ -128,7 +128,8 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
         this.currentPark = p;
 
         //removes alarm
-        PendingIntent pendingIntent = generatePendingIntent(currentPark.getAlarmTime());
+        PendingIntent pendingIntent = generatePendingIntent(currentPark.getAlarmTime(), mainActivity,
+                currentPark, mainActivity.getDBViewModel().getCurrentCar());
         AlarmManager alarmManager = (AlarmManager) mainActivity.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
 
@@ -170,6 +171,26 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
                     notificationBuilder.build());
         }
 
+    }
+
+    /*
+    Boot receiver, launches service to restore alarms
+     */
+    public static class BootCompletedReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
+                Intent i = new Intent(context, RestoreAlarmsService.class);
+                //use startForegroundService if API level >= 26
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(i);
+                } else {
+                    context.startService(i);
+                }
+            }
+        }
     }
 
 }

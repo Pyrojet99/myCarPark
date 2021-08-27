@@ -11,14 +11,9 @@ import java.util.List;
 
 @Dao
 public interface ParkDao {
-    @Query("SELECT * FROM park")
-    LiveData<List<Park>> getAll();
 
     @Query("SELECT * FROM park WHERE parkedCarId LIKE :carId ORDER BY startTime DESC")
     LiveData<List<Park>> getAllByCarId(Long carId);
-
-    @Query("SELECT * FROM park WHERE parkId LIKE :queryId LIMIT 1")
-    Park findById(Long queryId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Park p);
@@ -35,4 +30,6 @@ public interface ParkDao {
     @Delete
     void delete(Park p);
 
+    @Query("SELECT * FROM park WHERE alarmTime > 0")
+    List<Park> getParksWithAlarm();
 }
