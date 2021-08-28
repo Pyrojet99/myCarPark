@@ -31,6 +31,10 @@ public class ParkAddress {
         this.thoroughfare = thoroughfare;
     }
 
+    public void setSubThoroughfare(String subThoroughfare) {
+        this.subThoroughfare = subThoroughfare;
+    }
+
     public double getLatitude() {
         return latitude;
     }
@@ -51,7 +55,4 @@ public class ParkAddress {
         return subThoroughfare;
     }
 
-    public void setSubThoroughfare(String subThoroughfare) {
-        this.subThoroughfare = subThoroughfare;
-    }
 }

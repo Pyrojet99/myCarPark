@@ -96,7 +96,7 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     @Override
     public void onTimeSet(TimePicker view, int hour, int minute) {
         //calculate selected date in millis
-        long timeInMillis = MainActivity.dateToMillis(selectedYear, selectedMonth, selectedDay, hour, minute);
+        long timeInMillis = Utils.dateToMillis(selectedYear, selectedMonth, selectedDay, hour, minute);
         //insert alarm time into DB
         mainActivity.getDBViewModel().setParkAlarmTime(currentPark, timeInMillis);
 
@@ -112,11 +112,11 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     Creates PendingIntent
      */
     public static PendingIntent generatePendingIntent(long timeInMillis, Context context, Park p, Car c) {
-        String notificationText = "Park for car "+c.getName()+
-                " is expiring at "+MainActivity.getDateFromMillis(timeInMillis, "HH:mm");
+        String notificationText = context.getString(R.string.alarm_notification_text,
+                c.getName(), Utils.getDateFromMillis(timeInMillis, "HH:mm"));
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra(NOTIFICATION_EXTRA_TEXT, notificationText);
-        intent.putExtra(NOTIFICATION_CHANNEL_ID, (int) p.getParkId());
+        intent.putExtra(NOTIFICATION_EXTRA_ID, (int) p.getParkId());
         intent.putExtra(NOTIFICATION_EXTRA_CAR_ID, p.getParkedCarId());
         return PendingIntent.getBroadcast(context, (int) p.getParkId(), intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
@@ -143,32 +143,29 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     public static class AlarmReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("mytag", "onReceive: received alarm, ready to notify");
-
+            int notificationId = intent.getIntExtra(NOTIFICATION_EXTRA_ID,0);
 
             //create an explicit intent to launch mainActivity with parked car id as extra
             Intent onTapIntent = new Intent(context, MainActivity.class);
             onTapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             onTapIntent.putExtra(context.getString(R.string.start_car_extra_intent),
                     intent.getLongExtra(NOTIFICATION_EXTRA_CAR_ID, 0));
-
-            PendingIntent onTapPendingIntent = PendingIntent.getActivity(context, 0, onTapIntent, 0);
+            //uses same id as notification for PendingIntent requestCode
+            PendingIntent onTapPendingIntent = PendingIntent.getActivity(context, notificationId, onTapIntent, 0);
 
 
             //builds notification
             NotificationCompat.Builder notificationBuilder =
                     new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                            .setContentTitle("park expired")
+                            .setContentTitle(context.getString(R.string.alarm_notification_title))
                             .setContentText(intent.getStringExtra(NOTIFICATION_EXTRA_TEXT))
                             .setSmallIcon(R.drawable.ic_notification_car_24)
                             .setAutoCancel(true)
                             .setContentIntent(onTapPendingIntent);
 
-
-
+            //shows notification
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-            notificationManager.notify(intent.getIntExtra(NOTIFICATION_EXTRA_ID,0),
-                    notificationBuilder.build());
+            notificationManager.notify(notificationId, notificationBuilder.build());
         }
 
     }
@@ -177,13 +174,13 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
     Boot receiver, launches service to restore alarms
      */
     public static class BootCompletedReceiver extends BroadcastReceiver{
-
         @Override
         public void onReceive(Context context, Intent intent) {
 
             if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
                 Intent i = new Intent(context, RestoreAlarmsService.class);
                 //use startForegroundService if API level >= 26
+                //foreground service not needed for API level < 26
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(i);
                 } else {

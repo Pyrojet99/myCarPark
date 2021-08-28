@@ -30,7 +30,6 @@ import android.widget.TextView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -59,6 +58,12 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean newParkEnabled;
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //saves current car id in DB
+        dbViewModel.updateCurrentCarId(dbViewModel.getCurrentCar().getCarId());
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,9 +217,6 @@ public class MainActivity extends AppCompatActivity {
         // Update top textview with car name
         textViewCurrCar.setText(newSelectedCar.getName());
 
-        //update current car id in DB
-        dbViewModel.updateCurrentCarId(newSelectedCar.getCarId());
-
         //remove previous cars observers
         dbViewModel.getNonCurrCarList().removeObservers(this);
         //updates live car list to exclude new current car
@@ -246,7 +248,6 @@ public class MainActivity extends AppCompatActivity {
      */
     public void addNewCar(EditText editAddCar) {
         String carName = editAddCar.getText().toString();
-        Log.d("mytag", "new car: " + carName);
         if (!carName.trim().equals("")) {
             //new car set as current
             Car c = new Car(carName);
@@ -254,8 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             //TODO: make toast or other
-            Log.d("mytag", "invalid car name");
-            Snackbar.make(coordinatorLayout, "use a non-void car name",
+            Snackbar.make(coordinatorLayout, R.string.alert_invalid_car_name,
                     BaseTransientBottomBar.LENGTH_SHORT).show();
         }
         //reset input text
@@ -295,26 +295,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void toggleExpandTopBar() {
-        Log.d("mytag", "expandedArrow: cliccato ");
-        //TODO: close keyboard if open
-
-        // If the CardView is already expanded, set its visibility
-        //  to gone and change the expand less icon to expand more.
+        // if the CardView is already expanded, set its visibility
+        // to gone and change the expand less icon to expand more
         if (hiddenTopBar.getVisibility() == View.VISIBLE) {
+            //collapse bar
 
-            // The transition of the hiddenView is carried out
-            //  by the TransitionManager class.
-            // Here we use an object of the AutoTransition
-            // Class to create a default transition.
+            //create autotransition
             TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
             hiddenTopBar.setVisibility(View.GONE);
             topExpandArrow.setImageResource(R.drawable.ic_baseline_expand_more_24);
         }
-
-        // If the CardView is not expanded, set its visibility
-        // to visible and change the expand more icon to expand less.
         else {
-
+            //expand bar
             TransitionManager.beginDelayedTransition(cardTopBar, new AutoTransition());
             hiddenTopBar.setVisibility(View.VISIBLE);
             topExpandArrow.setImageResource(R.drawable.ic_baseline_expand_less_24);
@@ -341,9 +333,17 @@ public class MainActivity extends AppCompatActivity {
         return newParkEnabled;
     }
 
+    public CoordinatorLayout getCoordinatorLayout() {
+        return coordinatorLayout;
+    }
+
+    public BottomSheetBehavior getBottomSheetBehavior() {
+        return bottomSheetBehavior;
+    }
+
 
     /*
-    Return currentCarId;
+    Return currentCarId from viewModel
      */
     public long getCurrentCarId() {
         return dbViewModel.getCurrentCar().getCarId();
@@ -363,14 +363,13 @@ public class MainActivity extends AppCompatActivity {
     Get a new location, if successful insert into DB
      */
     public void addNewLocation() {
-        Log.d("mytag", "addNewLocation: cliccato ");
-        locationUtility.setCurrentLocation();
+        locationUtility.getCurrentLocation();
     }
 
     /*
     Create and insert new park in the database
      */
-    public void insertPark(ParkAddress addr) {
+    public void generateAndInsertPark(ParkAddress addr) {
         //get current time in millis
         long currentTime = Calendar.getInstance().getTimeInMillis();
         //updates current markers present on map to old markers
@@ -426,10 +425,6 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
-    public BottomSheetBehavior getBottomSheetBehavior() {
-        return bottomSheetBehavior;
-    }
-
     /*
     Set endtime for current park, so it becomes an old park
      */
@@ -445,40 +440,6 @@ public class MainActivity extends AppCompatActivity {
         alarmUtility.removeAlarm(park);
     }
 
-    /*
-    Returns string representing date in the format passed as an argument of millis from epoch
-     */
-    public static String getDateFromMillis(long milliSeconds, String dateFormat) {
-        // Create a DateFormatter object for displaying date in specified format
-        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
-
-        // Create a calendar object that will convert the date and time value in milliseconds to date
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(milliSeconds);
-        return formatter.format(calendar.getTime());
-    }
-
-    /*
-    Transforms int for year, month, day, hour and minute in millis from epoch
-     */
-    public static long dateToMillis(int year, int month, int day, int hour, int minute) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month, day, hour, minute);
-        return calendar.getTimeInMillis();
-    }
-
-    /*
-    Generates bitmap from resource id of drawable vector.
-    From https://stackoverflow.com/questions/33696488/getting-bitmap-from-vector-drawable
-     */
-    public static Bitmap generateBitmapFromVector(Context context, int resourceId) {
-        Drawable drawable = AppCompatResources.getDrawable(context, resourceId);
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
-    }
 
     /*
     Unfocus editText and closes keyboard when clicking outside editText

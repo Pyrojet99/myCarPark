@@ -47,8 +47,8 @@ public class MapUtility {
         this.mainActivity = mainActivity;
 
         //generates bitmaps for map markers
-        bitmapCurrentMarker = MainActivity.generateBitmapFromVector(mainActivity, R.drawable.ic_car_current_24_vect);
-        bitmapOldMarker = MainActivity.generateBitmapFromVector(mainActivity, R.drawable.ic_car_old_24_vect);
+        bitmapCurrentMarker = Utils.generateBitmapFromVector(mainActivity, R.drawable.ic_car_current_24_vect);
+        bitmapOldMarker = Utils.generateBitmapFromVector(mainActivity, R.drawable.ic_car_old_24_vect);
 
         //init markers map
         markersMap = new HashMap<>();
@@ -243,7 +243,6 @@ public class MapUtility {
     public void removeAllMarkers() {
         for(Marker m : this.markersMap.values()) {
             m.remove();
-            Log.d("mytag", "removeAllMarkers: marker with tag: "+m.getTag());
         }
         //reset Markers, MarkerOptions and isCurrentMarker maps
         markersMap.clear();

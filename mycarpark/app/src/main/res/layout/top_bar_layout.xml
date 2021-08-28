@@ -79,7 +79,7 @@
                        android:id="@+id/editText_add_car"
                        android:layout_width="0dp"
                        android:layout_height="wrap_content"
-                       android:hint="add car"
+                       android:hint="@string/edittext_add_car_placeholder"
                        android:inputType="textPersonName"
                        app:layout_constraintEnd_toEndOf="parent"
                        app:layout_constraintStart_toEndOf="@+id/button_add_car"

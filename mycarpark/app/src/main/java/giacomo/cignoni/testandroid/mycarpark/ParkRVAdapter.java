@@ -24,14 +24,14 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         public static class ParkViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             //needed for calling methods from main
             protected MainActivity mainActivity;
-            Park park;
+
+            protected Park park;
 
             protected TextView textParkAddrLine1;
             protected TextView textParkAddrLine2;
             protected TextView textTime;
             protected CardView cardView;
             protected ImageButton buttonMore;
-
 
             public ParkViewHolder(View itemView, MainActivity mainActivity) {
                 super(itemView);
@@ -48,7 +48,7 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
 
             public void bind(Park p) {
                 this.park = p;
-                //initialize address textviews
+                //reset address textviews
                 textParkAddrLine1.setText("");
                 textParkAddrLine2.setText("");
 
@@ -68,14 +68,14 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 if (p.getAddress().getThoroughfare() == null
                         && p.getAddress().getLocality() == null) {
                     //if both thoroughfare and locality are null, uses lat and long instead
-                    textParkAddrLine1.setText("Lat: " + p.getAddress().getLatitude());
-                    textParkAddrLine2.setText("Long: " + (p.getAddress().getLongitude()));
+                    textParkAddrLine1.setText(mainActivity.getString(R.string.latitude_park_item, p.getAddress().getLatitude()));
+                    textParkAddrLine2.setText(mainActivity.getString(R.string.longitude_park_item, p.getAddress().getLongitude()));
                 }
 
                 //sets end and start time
-                textTime.setText(MainActivity.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm")
-                        + " - " + MainActivity.getDateFromMillis(p.getEndTime(), "dd/MM/yyyy HH:mm"));
-
+                textTime.setText(mainActivity.getString(R.string.date_park_item,
+                        Utils.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"),
+                        Utils.getDateFromMillis(p.getEndTime(), "dd/MM/yyyy HH:mm")));
             }
 
             static ParkViewHolder create(ViewGroup parent, MainActivity ma) {
@@ -142,15 +142,14 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
         public void bind(Park p) {
            super.bind(p);
            if (super.park.getEndTime() == 0) {
-               super.textTime.setText(MainActivity.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"));
+               super.textTime.setText(Utils.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"));
                //adds marker on map
                super.mainActivity.getMapUtility().addCurrParkMarker(p);
            }
 
-           Log.d("mytag", "bind currPark: isSwitcherShowingButton "+ isSwitcherShowingButton);
            if (p.getAlarmTime() != 0) {
                //if alarm time has been set
-               chipAlarm.setText(MainActivity.getDateFromMillis(p.getAlarmTime(), "HH:mm dd/MM"));
+               chipAlarm.setText(Utils.getDateFromMillis(p.getAlarmTime(), "HH:mm dd/MM"));
                if (isSwitcherShowingButton) {
                    //flip the switcher to show the chip
                    viewSwitcherAlarm.showNext();

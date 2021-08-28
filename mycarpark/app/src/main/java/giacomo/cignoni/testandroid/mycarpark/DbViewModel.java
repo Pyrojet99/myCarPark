@@ -147,7 +147,6 @@ public class DbViewModel extends AndroidViewModel {
     }
 
 
-
     /*
     currentCar methods
      */

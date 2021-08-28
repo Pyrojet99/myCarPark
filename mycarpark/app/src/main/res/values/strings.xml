@@ -5,10 +5,20 @@
     <!--Other strings -->
     <string name="app_name">MyCarPark</string>
     <string name="notification_channel_name">MyCarPark Notifications</string>
-    <string name="notification_title">Park is expiring</string>
-    <string name="boot_notification_title">Restoring...</string>
-    <string name="boot_notification_text">Restoring pending alarms for parks...</string>
+    <string name="boot_notification_title">Restoring…</string>
+    <string name="boot_notification_text">Restoring pending alarms for parks…</string>
+    <string name="alarm_notification_title">Park is expiring</string>
+    <string name="alarm_notification_text">Park for car %1$s is expiring at %2$s</string>
     <string name="time_picker_text">Select parking expire time</string>
-    <string name="top_bar_selector_default">Tap to add or select car</string>
+    <string name="top_bar_selector_default">Expand to add or select car</string>
     <string name="fab_add_location_text">Parking\nLocation</string>
+    <string name="edittext_add_car_placeholder">add car</string>
+    <string name="dismiss_button">Dismiss</string>
+    <string name="alert_no_location_perm">Grant location permissions to use the app correctly</string>
+    <string name="alert_unable_to_get_loc">Unable to get current location</string>
+    <string name="alert_invalid_car_name">Use a non-void car name</string>
+    <string name="latitude_park_item">Lat: %1$d</string>
+    <string name="longitude_park_item">Long: %1$d</string>
+    <string name="date_park_item">%1$s - %2$s</string>
+
 </resources>

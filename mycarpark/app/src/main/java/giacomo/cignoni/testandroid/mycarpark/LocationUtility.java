@@ -5,8 +5,6 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -16,6 +14,8 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,24 +44,25 @@ public class LocationUtility {
         mainActivity.registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
             if (isGranted) {
                 // permission is granted
-                Log.d("mytag", "addNewLocation:  permission granted after dialog");
                 //start again setCurrentLocation
-                setCurrentLocation();
+                getCurrentLocation();
 
             } else {
                 // Explain to the user that the feature is unavailable
-                Toast.makeText(mainActivity.getApplicationContext(), "location permession not granted after dialog", Toast.LENGTH_SHORT).show();
-
+                Snackbar.make(ma.getCoordinatorLayout(), R.string.alert_no_location_perm,
+                        BaseTransientBottomBar.LENGTH_LONG).show();
             }
         });
     }
 
-    public void setCurrentLocation() {
-        //TODO: check settings for location enabled https://developer.android.com/training/location/change-location-settings
-
+    /*
+    Tries to make a request to get current location, checks for location permissions.
+    If succeeds calls reverseGeocode on the location
+     */
+    public void getCurrentLocation() {
         //checks for permission and requests it in case
         if (ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("mytag", "addNewLocation: no permission location");
+            //if permission missing, launch dialog
             requestPermissionLauncher.launch(
                     Manifest.permission.ACCESS_FINE_LOCATION);
             return;
@@ -72,15 +73,19 @@ public class LocationUtility {
         locationTask.addOnCompleteListener(task -> {
             Location location = task.getResult();
 
-            Toast.makeText(mainActivity.getApplicationContext(), "location got", Toast.LENGTH_SHORT).show();
             reverseGeocode(location.getLatitude(), location.getLongitude());
 
         });
         locationTask.addOnFailureListener(task -> {
-            Toast.makeText(mainActivity.getApplicationContext(), "unable to get current location", Toast.LENGTH_SHORT).show();
+            Snackbar.make(mainActivity.getCoordinatorLayout(), R.string.alert_unable_to_get_loc,
+                    BaseTransientBottomBar.LENGTH_LONG).show();
         });
     }
 
+    /*
+    Tries to reverse geocode the location passed from getCurrentLocation.
+    Then creates parkAddres object and calls generateAndInsertPark
+     */
     public void reverseGeocode(double latitude, double longitude) {
         geocodeExecutor.execute(() -> {
             Address addr;
@@ -96,12 +101,12 @@ public class LocationUtility {
             else{
                 addr = listAddresses.get(0);
             }
-            mainActivity.runOnUiThread(() -> {
 
+            mainActivity.runOnUiThread(() -> {
                 ParkAddress pAddr;
                 if(addr != null) {
                     //create new ParkAddress
-                    pAddr = new ParkAddress(addr.getLatitude(), addr.getLongitude(),
+                    pAddr = new ParkAddress(latitude, longitude,
                             addr.getLocality(), addr.getThoroughfare(), addr.getSubThoroughfare());
                 }
                 else {
@@ -110,11 +115,9 @@ public class LocationUtility {
                             null, null, null);
 
                 }
-                mainActivity.insertPark(pAddr);
-
+                //generate park and insert in DB
+                mainActivity.generateAndInsertPark(pAddr);
             });
-
         });
-
     }
 }

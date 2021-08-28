@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/lin_layout_park_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -74,7 +73,7 @@
                 android:layout_margin="16dp"
                 android:layout_marginStart="16dp"
                 android:backgroundTint="?colorSecondary"
-                android:text="dismiss"
+                android:text="@string/dismiss_button"
                 android:textColor="?colorOnSecondary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textview_addr_line2" />
@@ -102,7 +101,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:chipIcon="@drawable/ic_baseline_alarm_12"
-                    android:text="test"
                     app:closeIconVisible="true" />
 
             </ViewSwitcher>
