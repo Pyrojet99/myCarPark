@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.transition.AutoTransition;
@@ -254,7 +255,6 @@ public class MainActivity extends AppCompatActivity {
             dbViewModel.insertCar(c);
 
         } else {
-            //TODO: make toast or other
             Snackbar.make(coordinatorLayout, R.string.alert_invalid_car_name,
                     BaseTransientBottomBar.LENGTH_SHORT).show();
         }
@@ -278,9 +278,7 @@ public class MainActivity extends AppCompatActivity {
         ImageButton buttonAddCar = findViewById(R.id.button_add_car);
 
         //onclick listener for + button
-        buttonAddCar.setOnClickListener(v -> {
-            addNewCar(editAddCar);
-        });
+        buttonAddCar.setOnClickListener(v -> addNewCar(editAddCar));
 
         //listener for done button on keyboard
         editAddCar.setOnEditorActionListener((v, actionId, event) -> {
@@ -381,7 +379,9 @@ public class MainActivity extends AppCompatActivity {
         dbViewModel.insertPark(p);
 
         //haptic feedback of confirmation
-        this.fabAddLocation.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            this.fabAddLocation.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
+        }
     }
 
     /*

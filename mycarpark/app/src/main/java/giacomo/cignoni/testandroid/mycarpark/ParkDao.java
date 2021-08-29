@@ -1,6 +1,9 @@
 package giacomo.cignoni.testandroid.mycarpark;
 
 import androidx.lifecycle.LiveData;
+import androidx.paging.DataSource;
+import androidx.paging.PagedList;
+import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,7 +16,7 @@ import java.util.List;
 public interface ParkDao {
 
     @Query("SELECT * FROM park WHERE parkedCarId LIKE :carId ORDER BY startTime DESC")
-    LiveData<List<Park>> getAllByCarId(Long carId);
+    DataSource.Factory<Integer, Park> getAllByCarId(Long carId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Park p);

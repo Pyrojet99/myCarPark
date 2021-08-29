@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: androidx.paging:paging-guava:3.0.1@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/097a52e4e160ee7787975684df53f141/transformed/paging-guava-3.0.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/097a52e4e160ee7787975684df53f141/transformed/paging-guava-3.0.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/097a52e4e160ee7787975684df53f141/transformed/paging-guava-3.0.1/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.paging/paging-guava/3.0.1/54a3751815014aae94b6403f89fbdbeca7cb7fb4/paging-guava-3.0.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

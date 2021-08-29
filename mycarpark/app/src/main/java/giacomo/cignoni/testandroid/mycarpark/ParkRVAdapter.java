@@ -13,13 +13,14 @@ import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 
-public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
+public class ParkRVAdapter extends PagedListAdapter<Park, RecyclerView.ViewHolder> {
 
         public static class ParkViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             //needed for calling methods from main
@@ -52,30 +53,32 @@ public class ParkRVAdapter extends ListAdapter<Park, RecyclerView.ViewHolder>  {
                 textParkAddrLine1.setText("");
                 textParkAddrLine2.setText("");
 
-                if (p.getAddress().getLocality() != null) {
-                    //uses locality if present
-                    textParkAddrLine2.setText(p.getAddress().getLocality()+ " " + p.getParkedCarId());
-                }
-                if (p.getAddress().getThoroughfare() != null) {
-                    //uses thoroughfare if present
-                    String addrLine1 = p.getAddress().getThoroughfare();
-                    if (p.getAddress().getSubThoroughfare() != null) {
-                        //uses subThoroughfare if present
-                        addrLine1 = addrLine1 + ", " + p.getAddress().getSubThoroughfare();
+                if(p != null) {
+                    if (p.getAddress().getLocality() != null) {
+                        //uses locality if present
+                        textParkAddrLine2.setText(p.getAddress().getLocality() + " " + p.getParkedCarId());
                     }
-                    textParkAddrLine1.setText(addrLine1);
-                }
-                if (p.getAddress().getThoroughfare() == null
-                        && p.getAddress().getLocality() == null) {
-                    //if both thoroughfare and locality are null, uses lat and long instead
-                    textParkAddrLine1.setText(mainActivity.getString(R.string.latitude_park_item, p.getAddress().getLatitude()));
-                    textParkAddrLine2.setText(mainActivity.getString(R.string.longitude_park_item, p.getAddress().getLongitude()));
-                }
+                    if (p.getAddress().getThoroughfare() != null) {
+                        //uses thoroughfare if present
+                        String addrLine1 = p.getAddress().getThoroughfare();
+                        if (p.getAddress().getSubThoroughfare() != null) {
+                            //uses subThoroughfare if present
+                            addrLine1 = addrLine1 + ", " + p.getAddress().getSubThoroughfare();
+                        }
+                        textParkAddrLine1.setText(addrLine1);
+                    }
+                    if (p.getAddress().getThoroughfare() == null
+                            && p.getAddress().getLocality() == null) {
+                        //if both thoroughfare and locality are null, uses lat and long instead
+                        textParkAddrLine1.setText(mainActivity.getString(R.string.latitude_park_item, p.getAddress().getLatitude()));
+                        textParkAddrLine2.setText(mainActivity.getString(R.string.longitude_park_item, p.getAddress().getLongitude()));
+                    }
 
-                //sets end and start time
-                textTime.setText(mainActivity.getString(R.string.date_park_item,
-                        Utils.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"),
-                        Utils.getDateFromMillis(p.getEndTime(), "dd/MM/yyyy HH:mm")));
+                    //sets end and start time
+                    textTime.setText(mainActivity.getString(R.string.date_park_item,
+                            Utils.getDateFromMillis(p.getStartTime(), "dd/MM/yyyy HH:mm"),
+                            Utils.getDateFromMillis(p.getEndTime(), "dd/MM/yyyy HH:mm")));
+                }
             }
 
             static ParkViewHolder create(ViewGroup parent, MainActivity ma) {

@@ -18,7 +18,7 @@ public interface CarDao {
     @Delete
     void delete(Car c);
 
-    @Query("SELECT * FROM car WHERE carId <> :carIdToExclude")
+    @Query("SELECT * FROM car WHERE carId <> :carIdToExclude LIMIT 200")
     LiveData<List<Car>> getAllExcept(long carIdToExclude);
 
     @Query("SELECT * FROM car WHERE carId = :queryId LIMIT 1")

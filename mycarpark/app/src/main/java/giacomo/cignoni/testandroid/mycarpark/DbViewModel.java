@@ -4,6 +4,10 @@ import android.app.Application;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.paging.DataSource;
+import androidx.paging.LivePagedListBuilder;
+import androidx.paging.PagedList;
+
 import java.util.List;
 
 public class DbViewModel extends AndroidViewModel {
@@ -21,7 +25,7 @@ public class DbViewModel extends AndroidViewModel {
     private LiveData<List<Car>> liveNonCurrCarList;
 
     //list of parks for the current park
-    private LiveData<List<Park>> liveParkList;
+    private LiveData<PagedList<Park>> liveParkList;
 
     private CarDao carDao;
     private ParkDao parkDao;
@@ -95,15 +99,17 @@ public class DbViewModel extends AndroidViewModel {
 
     /*
     Update liveParkList with parks from new car
+    Gets dataSource and builds it into LiveData to be observable
      */
-    public void updateParkListByCurrentCarId(long newCarId){
-        liveParkList = parkDao.getAllByCarId(newCarId);
+    public void updateParkListByCurrentCarId(long newCarId) {
+        DataSource.Factory<Integer, Park> factory = parkDao.getAllByCarId(newCarId);
+        liveParkList = new LivePagedListBuilder(factory, 10).build();
     }
 
     /*
     Getter for liveParkList
      */
-    public LiveData<List<Park>> getParkList() {
+    public LiveData<PagedList<Park>> getParkList() {
         return liveParkList;
     }
 
@@ -123,9 +129,7 @@ public class DbViewModel extends AndroidViewModel {
     Deletes park form DB
      */
     public void deletePark(Park p) {
-        AppDatabase.databaseWriteExecutor.execute(() -> {
-           parkDao.delete(p);
-        });
+        AppDatabase.databaseWriteExecutor.execute(() -> parkDao.delete(p));
     }
 
     /*
