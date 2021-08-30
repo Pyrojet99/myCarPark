@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="bottomsheet_style">
+        <item name="cardBackgroundColor">@color/white_translucent</item>
+    </style>
+</resources>

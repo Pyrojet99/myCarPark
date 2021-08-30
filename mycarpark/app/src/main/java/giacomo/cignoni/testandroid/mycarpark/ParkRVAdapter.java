@@ -1,5 +1,8 @@
 package giacomo.cignoni.testandroid.mycarpark;
 
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -56,7 +59,7 @@ public class ParkRVAdapter extends PagedListAdapter<Park, RecyclerView.ViewHolde
                 if(p != null) {
                     if (p.getAddress().getLocality() != null) {
                         //uses locality if present
-                        textParkAddrLine2.setText(p.getAddress().getLocality() + " " + p.getParkedCarId());
+                        textParkAddrLine2.setText(p.getAddress().getLocality());
                     }
                     if (p.getAddress().getThoroughfare() != null) {
                         //uses thoroughfare if present
@@ -95,6 +98,16 @@ public class ParkRVAdapter extends PagedListAdapter<Park, RecyclerView.ViewHolde
                     switch (item.getItemId()) {
                         case R.id.menu_item_park_remove: {
                             mainActivity.deletePark(this.park);
+                            return true;
+                        }
+                        case R.id.menu_item_park_open_maps: {
+                            //creates intent to open Maps with park lat and long
+                            double lat = park.getAddress().getLatitude();
+                            double longt = park.getAddress().getLongitude();
+                            Uri locIntentUri = Uri.parse("geo:"+lat+","+longt+"?q="+lat+","+longt);
+                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, locIntentUri);
+                            mapIntent.setPackage("com.google.android.apps.maps");
+                            mainActivity.startActivity(mapIntent);
                             return true;
                         }
                         default:
@@ -205,7 +218,6 @@ public class ParkRVAdapter extends PagedListAdapter<Park, RecyclerView.ViewHolde
         }
     }
 
-
     MainActivity mainActivity;
 
     public ParkRVAdapter(@NonNull DiffUtil.ItemCallback<Park> diffCallback, MainActivity mainActivity) {
@@ -246,17 +258,18 @@ public class ParkRVAdapter extends PagedListAdapter<Park, RecyclerView.ViewHolde
             //if first item in recyclerview, set bottomSheet collapsed height to item height
             if (position == 0) setBottomSheetHeight(parkViewHolder.itemView);
         }
-
     }
 
     /*
-    Measures itemView height and sets bottomSheet height to measured height
+    Measures itemView height and sets bottomSheet height to measured height if device is in portrait
      */
     private void setBottomSheetHeight(View itemView) {
+        if(mainActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
         //from https://stackoverflow.com/questions/8200896/how-to-find-the-width-of-the-a-view-before-the-view-is-displayed
         itemView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         int height = itemView.getMeasuredHeight();
         mainActivity.getBottomSheetBehavior().setPeekHeight(height + 72);
+        }
     }
 
 

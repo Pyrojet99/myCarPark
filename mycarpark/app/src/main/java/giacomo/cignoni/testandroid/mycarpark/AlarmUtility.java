@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Log;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
@@ -98,12 +97,12 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
         //calculate selected date in millis
         long timeInMillis = Utils.dateToMillis(selectedYear, selectedMonth, selectedDay, hour, minute);
         //insert alarm time into DB
-        mainActivity.getDBViewModel().setParkAlarmTime(currentPark, timeInMillis);
+        mainActivity.getParksViewModel().setParkAlarmTime(currentPark, timeInMillis);
 
 
         //sets alarm
         PendingIntent pendingIntent = generatePendingIntent(timeInMillis, mainActivity,
-                currentPark, mainActivity.getDBViewModel().getCurrentCar());
+                currentPark, mainActivity.getCarsViewModel().getCurrentCar());
         AlarmManager alarmManager = (AlarmManager) mainActivity.getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis - FIVE_MIN_IN_MILLIS, pendingIntent);
     }
@@ -129,12 +128,12 @@ public class AlarmUtility implements DatePickerDialog.OnDateSetListener, TimePic
 
         //removes alarm
         PendingIntent pendingIntent = generatePendingIntent(currentPark.getAlarmTime(), mainActivity,
-                currentPark, mainActivity.getDBViewModel().getCurrentCar());
+                currentPark, mainActivity.getCarsViewModel().getCurrentCar());
         AlarmManager alarmManager = (AlarmManager) mainActivity.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
 
         //reset alarm in DB
-        mainActivity.getDBViewModel().setParkAlarmTime(currentPark, 0);
+        mainActivity.getParksViewModel().setParkAlarmTime(currentPark, 0);
     }
 
     /*

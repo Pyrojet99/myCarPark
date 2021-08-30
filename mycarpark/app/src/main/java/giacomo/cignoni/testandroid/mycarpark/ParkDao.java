@@ -35,4 +35,7 @@ public interface ParkDao {
 
     @Query("SELECT * FROM park WHERE alarmTime > 0")
     List<Park> getParksWithAlarm();
+
+    @Query("DELETE FROM Park WHERE parkedCarId LIKE :carId")
+    void deleteParksOfSameCar(long carId);
 }

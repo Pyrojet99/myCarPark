@@ -3,6 +3,7 @@ package giacomo.cignoni.testandroid.mycarpark;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
             implements View.OnClickListener {
         private TextView textViewCarName;
         private ConstraintLayout constraintLayout;
+        private ImageButton removeButton;
         //needed for calling switchCar method in main
         private MainActivity mainActivity;
         private Car car;
@@ -26,8 +28,10 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
             super(itemView);
             textViewCarName = itemView.findViewById(R.id.text_car_name);
             constraintLayout = itemView.findViewById(R.id.layout_car_item);
+            removeButton = itemView.findViewById(R.id.button_remove_car);
             this.mainActivity = mainActivity;
             constraintLayout.setOnClickListener(this);
+            removeButton.setOnClickListener(this);
         }
 
         public void bind(String carNameString, Car c) {
@@ -37,7 +41,12 @@ public class CarRVAdapter extends ListAdapter<Car, CarRVAdapter.CarViewHolder> {
 
         @Override
         public void onClick(View v) {
-            mainActivity.switchCar(this.car);
+            if (v.getId() == R.id.button_remove_car) {
+                mainActivity.showRemoveCarAlert(this.car);
+            }
+            else {
+                mainActivity.switchCar(this.car);
+            }
         }
     }
 

@@ -96,6 +96,9 @@ public class MapUtility {
                 if (mainActivity.getNewParkEnabled()) {
                     mainActivity.getLocationUtility().reverseGeocode(latLng.latitude, latLng.longitude);
                 }
+                else {
+                    Log.d("mytag", "longclick on map: disabled");
+                }
             });
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);

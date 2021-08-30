@@ -10,4 +10,10 @@
     <color name="blue_1000">#103D81</color>
     <color name="blue_back">#3F4061</color>
 
+    <color name="dark_gray_translucent">#CC424242</color>
+    <color name="white_translucent">#CCFFFFFF</color>
+
+    <color name="curr_car_red">#C2185B</color>
+    <color name="old_car_gray">#B39E9E9E</color>
+
 </resources>

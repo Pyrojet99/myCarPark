@@ -10,7 +10,7 @@ import androidx.paging.PagedList;
 
 import java.util.List;
 
-public class DbViewModel extends AndroidViewModel {
+public class CarsViewModel extends AndroidViewModel {
 
     //current car kept while the app is running and used for all operations
     //does not necessarily represent current car in database
@@ -24,19 +24,14 @@ public class DbViewModel extends AndroidViewModel {
     //list of all the cars which are not the current car
     private LiveData<List<Car>> liveNonCurrCarList;
 
-    //list of parks for the current park
-    private LiveData<PagedList<Park>> liveParkList;
-
     private CarDao carDao;
-    private ParkDao parkDao;
     private CurrCarIdDao currCarIdDao;
 
 
-    public DbViewModel(Application application) {
+    public CarsViewModel(Application application) {
         super(application);
         AppDatabase db = AppDatabase.getDatabase(application);
         //get DAOs
-        parkDao = db.parkDao();
         carDao = db.carDao();
         currCarIdDao = db.currCarIdDao();
     }
@@ -97,59 +92,11 @@ public class DbViewModel extends AndroidViewModel {
         });
     }
 
-    /*
-    Update liveParkList with parks from new car
-    Gets dataSource and builds it into LiveData to be observable
-     */
-    public void updateParkListByCurrentCarId(long newCarId) {
-        DataSource.Factory<Integer, Park> factory = parkDao.getAllByCarId(newCarId);
-        liveParkList = new LivePagedListBuilder(factory, 10).build();
-    }
-
-    /*
-    Getter for liveParkList
-     */
-    public LiveData<PagedList<Park>> getParkList() {
-        return liveParkList;
-    }
-
-    /*
-    Insert new park in DB and dismiss older current parks
-     */
-    public void insertPark(Park p) {
+    public void deleteCar(Car car) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            //sets current time as endTime for previous current parks BEFORE a new park is inserted
-            parkDao.dismissAllCurrentParks(p.getParkedCarId(), p.getStartTime());
-            //after that, inserts new park into database. The 2 DB operations NEED to be sequential
-            parkDao.insert(p);
+            carDao.delete(car);
         });
     }
-
-    /*
-    Deletes park form DB
-     */
-    public void deletePark(Park p) {
-        AppDatabase.databaseWriteExecutor.execute(() -> parkDao.delete(p));
-    }
-
-    /*
-    Sets park alarm time
-     */
-    public void setParkAlarmTime(Park p, long alarmTime) {
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.setAlarmTime(p.getParkId(), alarmTime)
-        );
-    }
-
-    /*
-    Dismiss a park, with end park time
-     */
-    public void dismissPark(Park p, Long endTime){
-        AppDatabase.databaseWriteExecutor.execute(() ->
-                parkDao.dismissPark(p.getParkId(), endTime)
-        );
-    }
-
 
     /*
     currentCar methods

@@ -17,8 +17,12 @@
     <string name="alert_no_location_perm">Grant location permissions to use the app correctly</string>
     <string name="alert_unable_to_get_loc">Unable to get current location</string>
     <string name="alert_invalid_car_name">Use a non-void car name</string>
-    <string name="latitude_park_item">Lat: %1$d</string>
-    <string name="longitude_park_item">Long: %1$d</string>
+    <string name="latitude_park_item">Lat: %1$f</string>
+    <string name="longitude_park_item">Long: %1$f</string>
     <string name="date_park_item">%1$s - %2$s</string>
+    <string name="delete_car_alert_title">Delete car</string>
+    <string name="delete_car_alert_text">Are you sure to delete car %1$s?</string>
+    <string name="remove_park_menu_item">Remove</string>
+    <string name="open_maps_park_menu_item">Open in Maps</string>
 
 </resources>
