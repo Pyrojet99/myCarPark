@@ -185,8 +185,6 @@ public class MainActivity extends AppCompatActivity {
 
         //init new location button
         initFabAddLocation();
-
-        mapUtility.restoreMarkers();
     }
 
 

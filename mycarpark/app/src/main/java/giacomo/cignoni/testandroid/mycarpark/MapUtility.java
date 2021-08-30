@@ -96,12 +96,11 @@ public class MapUtility {
                 if (mainActivity.getNewParkEnabled()) {
                     mainActivity.getLocationUtility().reverseGeocode(latLng.latitude, latLng.longitude);
                 }
-                else {
-                    Log.d("mytag", "longclick on map: disabled");
-                }
             });
 
             googleMap.getUiSettings().setMapToolbarEnabled(true);
+
+            this.restoreMarkers();
         });
     }
 
@@ -127,11 +126,17 @@ public class MapUtility {
     Restores all markers previously preserved in the viewModel
      */
     public void restoreMarkers() {
+        Log.d("mytag", "restoring Markers: ");
         for (Map.Entry<Long, MarkerOptions> entry : markersViewModel.getMarkerOptionsMap().entrySet()) {
             //restore marker to map if not already restored (if restored the corresponding value
             //of the entry in the Marker objects map is not null)
             if (this.markersMap.get(entry.getKey()) == null) {
                 this.addParkMarker(entry.getValue(), entry.getKey());
+                Log.d("mytag", "restored Marker ");
+            }
+            else {
+                Log.d("mytag", "not restored Marker because already is ");
+
             }
         }
     }
@@ -192,6 +197,7 @@ public class MapUtility {
 
             //adds marker to Map for later deletion or modification
             this.markersMap.put(parkId, marker);
+            Log.d("mytag", "addedParkMarker: ");
         }
 
         //map camera animation on marker focus on marker
@@ -244,6 +250,7 @@ public class MapUtility {
     Remove all markers from the GoogleMap and the maps used to keep track of markers
      */
     public void removeAllMarkers() {
+        Log.d("mytag", "removeAllMarkers");
         for(Marker m : this.markersMap.values()) {
             m.remove();
         }

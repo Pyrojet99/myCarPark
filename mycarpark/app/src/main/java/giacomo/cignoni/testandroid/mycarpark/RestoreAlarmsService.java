@@ -18,7 +18,7 @@ import java.util.List;
 
 public class RestoreAlarmsService extends IntentService {
     private static int SERVICE_ID = 1234567;
-    private static int NOTIFICATION_ID = 111;
+    private static int NOTIFICATION_ID = 1111;
 
     public RestoreAlarmsService() {
         super("RestoreAlarmsService");
@@ -39,8 +39,6 @@ public class RestoreAlarmsService extends IntentService {
         notificationManager.notify(NOTIFICATION_ID, n);
 
         startForeground(SERVICE_ID, n);
-
-
 
         AppDatabase db = AppDatabase.getDatabase(this);
         //get DAOs
